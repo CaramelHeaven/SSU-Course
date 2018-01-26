@@ -1,0 +1,4 @@
+﻿  Assembling main.asm...
+main.asm(119): warning A6001: no return from procedure
+  asm.vcxproj -> C:\Users\Sergey Fominov\documents\visual studio 2017\Projects\asm\x64\Debug\asm.exe
+  asm.vcxproj -> C:\Users\Sergey Fominov\documents\visual studio 2017\Projects\asm\x64\Debug\asm.pdb (Partial PDB)

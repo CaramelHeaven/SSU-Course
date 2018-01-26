@@ -1,0 +1,91 @@
+frame 0 0 800 400
+
+#1
+pushTransform
+translate 100 200
+rotate 270
+scale 2
+figure
+
+#2
+popTransform
+pushTransform
+translate 300 200
+rotate 270
+scale 2
+figure
+
+#3
+popTransform
+pushTransform
+translate 500 200
+rotate 270
+scale 2
+figure
+
+#4
+popTransform
+pushTransform
+translate 700 200
+rotate 270
+scale 2
+figure
+
+#center__right
+popTransform
+pushTransform
+translate 640 200
+
+#5
+pushTransform
+translate -130 -110
+rotate 135
+scale 1
+figure 
+
+#6
+popTransform
+pushTransform
+translate -240 -160
+rotate 90
+scale 1
+figure 
+
+#7
+popTransform
+pushTransform
+translate -350 -110
+rotate 45
+scale 1
+figure 
+
+#8
+popTransform
+pushTransform
+translate -350 110
+rotate 315
+scale 1
+figure 
+
+#9
+popTransform
+pushTransform
+translate -240 160
+rotate 270
+scale 1
+figure 
+
+#10
+popTransform
+pushTransform
+translate -130 110
+rotate 225
+scale 1
+figure 
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+﻿  MyForm.cpp
+c:\users\user1\documents\visual studio 2015\projects\1last\1last\MyForm.h(128): warning C4552: !=: оператор не имеет результата; требуется оператор с побочным действием
+  1last.vcxproj -> C:\Users\user1\documents\visual studio 2015\Projects\1last\Debug\1last.exe
