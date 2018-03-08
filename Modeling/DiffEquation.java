@@ -1,5 +1,3 @@
-package Modeling;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -61,31 +59,12 @@ public class DiffEquation extends JPanel {
             }
             g2.drawLine(x0, y0, x1, y1);
         }
-
-        // and for x axis
-        for (int i = 0; i < scores.size(); i++) {
-            if (scores.size() > 1) {
-                int x0 = i * (getWidth() - padding * 2 - labelPadding) / (scores.size() - 1) + padding + labelPadding;
-                int x1 = x0;
-                int y0 = getHeight() - padding - labelPadding;
-                int y1 = y0 - pointWidth;
-                if ((i % ((int) ((scores.size() / 20.0)) + 1)) == 0) {
-                    g2.setColor(gridColor);
-                    g2.drawLine(x0, getHeight() - padding - labelPadding - 1 - pointWidth, x1, padding);
-                    g2.setColor(Color.BLACK);
-                    String xLabel = i + "";
-                    FontMetrics metrics = g2.getFontMetrics();
-                    int labelWidth = metrics.stringWidth(xLabel);
-                    g2.drawString(xLabel, x0 - labelWidth / 2, y0 + metrics.getHeight() + 3);
-                }
-                g2.drawLine(x0, y0, x1, y1);
-            }
-        }
-
+        
         // create x and y axes
         g2.drawLine(padding + labelPadding, getHeight() - padding - labelPadding, padding + labelPadding, padding);
         g2.drawLine(padding + labelPadding, getHeight() - padding - labelPadding, getWidth() - padding, getHeight() - padding - labelPadding);
 
+        //Draw blue line
         Stroke oldStroke = g2.getStroke();
         g2.setColor(lineColor);
         g2.setStroke(GRAPH_STROKE);
@@ -136,7 +115,7 @@ public class DiffEquation extends JPanel {
     }
 
     public static void main(String[] args) {
-        for (double i = 6.0; i > 0.1; i = i - 0.1) {
+        for (double i = 6.0; i > 0; i = i - 0.1) {
             double t = computating(i);
             array.add(t);
         }
