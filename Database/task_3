@@ -239,29 +239,65 @@ insert into [Group Schedule] values (4, 2, 1, 1, '14:00', '16:00', 'Friday', 2);
 insert into [Group Schedule] values (5, 1, 1, 1, '13:50', '15:40', 'Sunday', 1);
 insert into [Group Schedule] values (6, 2, 2, 1, '20:00', '21:25', 'Wednesday', 2);
 
+insert into [Individual Schedule] values (1, '7:00', '8:15', '2014-3-27', 3, 1);
+insert into [Individual Schedule] values (2, '14:35', '15:45', '2016-4-22', 12, 3);
+insert into [Individual Schedule] values (3, '20:35', '22:25', '2018-7-2', 7, 5);
+
+select * from [Individual Schedule]
+
+[Individual Schedule]
+(
+	id_individual_work int NOT NULL CONSTRAINT PK_ind_work PRIMARY KEY,
+	time_start time NOT NULL,
+	time_end time NOT NULL,
+	date_individual date NOT NULL,
+	client_id int NOT NULL,
+	trainer_id int NOT NULL
+)
+GO
 
 --Смотрим сколько человек в одной групповой тренировке Inner Join
 select * from [Group work] inner join [Client Directory] on [Group work].get_people = [Client Directory].id_client where name_group = 'Group № 1'
+
 --Количество групповых занятий по вторнику
 select COUNT(*) from [Group Schedule] where day_of_week = 'Tuesday'
+
 --Выбрать тренеров между двумя датами рождения
 select * from [Trainer Directory] where [Trainer Directory].birthday between '1975-6-14' and '1987-1-16'
+
 --Выводим оплату клиента которую имеют скидку 4% или 9%
 select price_of_membership from [Gym Membership] where [Gym Membership].sale > 2 AND price_of_membership > ANY (select price_of_membership from [Gym Membership] where
 [Gym Membership].sale = 3)
---Выводим время занятий меньше 2 часов дня и при это мы проверяем, что места совпадают
+
+--Выводим время занятий меньше 14:00 часов дня и при это мы проверяем, что места совпадают
 select time_start, time_end, [Group Schedule].day_of_week from [Group Schedule] join [Trainer Directory] on [Trainer Directory].id_trainer = id_group_schedule
 join Place on Place.id_place = place_id where time_start < '14:00'
-
---select procent_of_sale, first_name, last_name, [Gym Membership].type_of_time from [Gym Membership] join [Client Directory] on [Client Directory].id_client = id_gym_membership
---join [Gym Membership] on [Gym Membership].type_of_time where procent_of_sale > 3 and 5 < procent_of_sale
 
 --Выделяем клиентов, у которых срок конца абонемента меньше 2018 года
 select day_of_start, day_of_end, first_name, last_name, [Gym Membership].price_of_membership from [Gym Membership] join [Client Directory] on [Client Directory].id_client = id_gym_membership
 where day_of_end < '2018-5-23' 
 
+--Выводим список клиентов у которых есть индивидуальное занятие и их тренеров
+select * from [Client Directory] join [Individual Schedule] on [Client Directory].id_client = [Individual Schedule].client_id join [Trainer Directory]
+on [Individual Schedule].trainer_id = [Trainer Directory].id_trainer 
 
+--Выводим названия залов у групповых занятий
+select name_place, COUNT(*) from Place join [Group Schedule] on Place.id_place = [Group Schedule].place_id group by name_place
 
+--Выводим групповые занятия, если до 12 часов - топ пишем АМ, иначе после обеда занятие
+select *, case when time_start < '12:00' then 'AM time' when time_start > '12:00' then 'PM time' end as 'Time working' from [Group Schedule]
+
+--Выводим среднюю плату клиентов за абонемент
+select CAST(AVG(price_of_membership) as char(10)) 'Middle price Clients' from [Gym Membership] 
+
+--Выводим среднюю зарплату тренеров
+select CAST(AVG(salary) as char(10)) 'Middle price Trainers' from [Trainer Directory]
+
+--Сортируем клиентов по рождению
+select id_client, first_name, last_name, birthday, (select DATEDIFF(YEAR, birthday, GETDATE())) 'Age client' from [Client Directory] order by birthday
+
+--Преобразуем имена и фамилии в строчные буквы
+select LOWER(first_name) 'First name', LOWER(last_name) 'Last name' from [Client Directory]
 
 --SELECT * FROM [Group Schedule]
 --SELECT * FROM [Group work]
@@ -271,4 +307,3 @@ where day_of_end < '2018-5-23'
 --SELECT * FROM [Client Directory]
 SELECT * FROM [Gym Membership]
 --SELECT * FROM [Sale]
-
