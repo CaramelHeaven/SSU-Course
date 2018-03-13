@@ -249,6 +249,9 @@ select * from [Trainer Directory] where [Trainer Directory].birthday between '19
 --Выводим оплату клиента которую имеют скидку 4% или 9%
 select price_of_membership from [Gym Membership] where [Gym Membership].sale > 2 AND price_of_membership > ANY (select price_of_membership from [Gym Membership] where
 [Gym Membership].sale = 3)
+--Выводим время занятий меньше 2 часов дня и при это мы проверяем, что места совпадают
+select time_start, time_end, [Group Schedule].day_of_week from [Group Schedule] join [Trainer Directory] on [Trainer Directory].id_trainer = id_group_schedule
+join Place on Place.id_place = place_id where time_start < '14:00'
 
 --select procent_of_sale, first_name, last_name, [Gym Membership].type_of_time from [Gym Membership] join [Client Directory] on [Client Directory].id_client = id_gym_membership
 --join [Gym Membership] on [Gym Membership].type_of_time where procent_of_sale > 3 and 5 < procent_of_sale
