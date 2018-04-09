@@ -433,3 +433,16 @@ values (13, '2016-3-5', '2022-12-2', 46520, 75, '6 years');
 
 SELECT * FROM [Gym Membership]
 SELECT * FROM [Sale]
+SELECT * FROM [Client Directory]
+-------------------------------------------------------------------------------------------------------------------------
+DELETE [Gym Membership] where id_gym_membership = 1
+
+GO
+CREATE TRIGGER GymMemberDELETE on [Gym Membership]
+INSTEAD OF DELETE
+AS
+BEGIN
+	DELETE FROM [Gym Membership] WHERE id_gym_membership in (SELECT id_gym_membership from deleted)
+	DELETE FROM [Client Directory] WHERE gym_membership_id in (SELECT gym_membership_id from deleted)
+END
+-------------------------------------------------------------------------------------------------------------------------
