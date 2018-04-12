@@ -319,130 +319,122 @@ SELECT * FROM [Kind of Sport]
 SELECT * FROM [Trainer Directory]
 SELECT * FROM [Client Directory]
 SELECT * FROM [Gym Membership]
+SELECT * FROM ClientTrace
 SELECT * FROM [Sale]
 
+DROP TRIGGER delete_user
 
+-----------------------------------------------------------------------------------------------------------------------— 
 
-DROP TRIGGER deleteGroupSch
+DELETE FROM [Client Directory] where id_client = 1 
 
--------------------------------------------------------------------------------------------------------------------------
---Если мы удаляем абонимент, то удаляем и юзера и скидку его
-GO
-CREATE TRIGGER DELETE_GYM ON [Gym Membership]
-FOR DELETE
-AS
-	BEGIN
-		DELETE FROM [Gym Membership] WHERE [Gym Membership].id_gym_membership IN (SELECT id_gym_membership FROM deleted)
-		DELETE FROM Sale WHERE Sale.id_sale in (SELECT sale FROM deleted)
-END
+-----------------------------------------------------------------------------------------------------------------------— 
+DROP TRIGGER deleteUser
 
-DELETE FROM [Gym Membership] where id_gym_membership = 1
+GO 
+CREATE TRIGGER deleteUser ON [Client Directory] 
+FOR DELETE 
+AS 
+	BEGIN 
+		DELETE FROM [Client Directory] WHERE [Client Directory].id_client in (SELECT id_client FROM deleted) 
+		DELETE FROM [Gym Membership] WHERE [Gym Membership].id_gym_membership in (SELECT id_client FROM deleted) 
+END 
 
--------------------------------------------------------------------------------------------------------------------------
---Триггер на удаления расписания
-DROP TRIGGER deleteGroupSch
-GO
-CREATE TRIGGER deleteGroupSch ON [Group Schedule]
-FOR DELETE
-AS
-	BEGIN
-		DELETE FROM [Group Schedule] WHERE [Group Schedule].id_group_schedule in (SELECT id_group_schedule FROM deleted)
-		DELETE FROM [Kind of Sport] WHERE [Kind of Sport].id_kind in (SELECT type_of_sport_id FROM deleted)
-		DELETE FROM Place WHERE Place.id_place in (SELECT place_id FROM deleted)
-		DELETE FROM [Group work] WHERE [Group work].id_group = (SELECT group_id FROM deleted)
-END
--------------------------------------------------------------------------------------------------------------------------
-	--id_group_schedule int NOT NULL CONSTRAINT PK_grp_schedule PRIMARY KEY,
-	--group_id int NOT NULL,
-	--place_id int NOT NULL,
-	--trainer_id int NOT NULL,
-	--time_start time NOT NULL,
-	--time_end time NOT NULL,
-	--day_of_week varchar(20) NOT NULL,
-	--type_of_sport_id int NOT NULL
-DROP TRIGGER UPDATE_PLACE
--------------------------------------------------------------------------------------------------------------------------
-GO
-CREATE TRIGGER UPDATE_PLACE ON [Group Schedule]
-FOR INSERT
-AS
-	BEGIN
-		DECLARE @basePlace int
-		DECLARE @referencePlace int
-		DECLARE @sizePeople int
-		SELECT @referencePlace = id_place FROM Place WHERE id_place in (SELECT place_id FROM inserted)
-		SELECT @basePlace = place_id FROM [Group Schedule]
-		IF @referencePlace = @basePlace
-			BEGIN
-					SELECT @sizePeople = COUNT(*) FROM [Group work] WHERE id_group in (SELECT group_id FROM inserted)
-					UPDATE Place
-						SET quantity_place = quantity_place - @sizePeople WHERE id_place = @basePlace
-			END
-END
--------------------------------------------------------------------------------------------------------------------------
---Simply delete for Individual schedule
-GO
-CREATE TRIGGER DELETE_INDIDIV_WORK ON [Individual Schedule]
-FOR DELETE
-AS
-	BEGIN
-		DELETE FROM [Individual Schedule] WHERE [Individual Schedule].id_individual_work in (SELECT id_individual_work FROM deleted)
-END
--------------------------------------------------------------------------------------------------------------------------
---Обновление времени у группового занятия
-DROP TRIGGER UPDATING_TIME_GROUP_SCHEDULE
+-----------------------------------------------------------------------------------------------------------------------— 
+--id_group_schedule int NOT NULL CONSTRAINT PK_grp_schedule PRIMARY KEY, 
+--group_id int NOT NULL, 
+--place_id int NOT NULL, 
+--trainer_id int NOT NULL, 
+--time_start time NOT NULL, 
+--time_end time NOT NULL, 
+--day_of_week varchar(20) NOT NULL, 
+--type_of_sport_id int NOT NULL 
+DROP TRIGGER UPDATE_PLACE 
+-----------------------------------------------------------------------------------------------------------------------— 
+GO 
+CREATE TRIGGER UPDATE_PLACE ON [Group Schedule] 
+FOR INSERT 
+AS 
+BEGIN 
+	DECLARE @basePlace int 
+	DECLARE @referencePlace int 
+	DECLARE @sizePeople int 
+	SELECT @referencePlace = id_place FROM Place WHERE id_place in (SELECT place_id FROM inserted) 
+	SELECT @basePlace = place_id FROM [Group Schedule] 
+	IF @referencePlace = @basePlace 
+		BEGIN 
+		SELECT @sizePeople = COUNT(*) FROM [Group work] WHERE id_group in (SELECT group_id FROM inserted) 
+		UPDATE Place 
+		SET quantity_place = quantity_place - @sizePeople WHERE id_place = @basePlace 
+		END 
+	ELSE 
+	BEGIN 
+		PRINT 'Error for insert UPDATE_PLACE' 
+	ROLLBACK TRANSACTION 
+	END 
+END 
+-----------------------------------------------------------------------------------------------------------------------— 
+--Simply delete for Individual schedule 
+GO 
+CREATE TRIGGER DELETE_INDIDIV_WORK ON [Individual Schedule] 
+FOR DELETE 
+AS 
+BEGIN 
+DELETE FROM [Individual Schedule] WHERE [Individual Schedule].id_individual_work in (SELECT id_individual_work FROM deleted) 
+END 
 
-GO
-CREATE TRIGGER UPDATING_TIME_GROUP_SCHEDULE ON [Group Schedule]
-AFTER UPDATE
-AS
-	DECLARE @timeStart time
-	DECLARE @timeEnd time
-		BEGIN
-			SELECT @timeStart = time_start FROM [Group Schedule] WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted)
-			SELECT @timeEnd = time_end FROM [Group Schedule] WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted)
-	PRINT 'currentTime: '
-	PRINT @timeStart
-		BEGIN
-			SELECT @timeStart = @timeStart + ('01.01.2004 00:00:00')
-			SELECT @timeEnd = @timeEnd + ('01.01.2004 00:00:00')
-			INSERT INTO [Group Schedule](time_start, time_end) VALUES (@timeStart, @timeEnd)
-		END
-END
--------------------------------------------------------------------------------------------------------------------------
-DROP TRIGGER CHECK_FOR_ADD
+DELETE FROM [Individual Schedule] where id_individual_work = 1 
 
-GO
-CREATE TRIGGER CHECK_FOR_ADD on [Gym Membership]
-FOR INSERT
-AS
-	DECLARE @temp int
-	BEGIN
-		IF NOT EXISTS (SELECT * FROM Sale S, inserted i WHERE S.id_sale = i.sale)
-			BEGIN
-				SELECT @temp = i.sale FROM Sale S, inserted i WHERE S.id_sale = i.sale
-				UPDATE Sale
-					SET procent_of_sale = 20
-					WHERE id_sale = @temp
-			END
-	END
--------------------------------------------------------------------------------------------------------------------------
+SELECT * FROM [Individual Schedule]
+SELECT * FROM [Trainer Directory]
 
-insert[Gym Membership](id_gym_membership, day_of_start, day_of_end, price_of_membership, sale, type_of_time) 
-values (13, '2016-3-5', '2022-12-2', 46520, 75, '6 years');
+-----------------------------------------------------------------------------------------------------------------------— 
+--Обновление времени у группового занятия 
+DROP TRIGGER UPDATING_TIME_GROUP_SCHEDULE 
 
-SELECT * FROM [Gym Membership]
-SELECT * FROM [Sale]
-SELECT * FROM [Client Directory]
--------------------------------------------------------------------------------------------------------------------------
-DELETE [Gym Membership] where id_gym_membership = 1
+GO 
+CREATE TRIGGER UPDATING_TIME_GROUP_SCHEDULE ON [Group Schedule] 
+AFTER UPDATE 
+AS 
+	DECLARE @timeStart time 
+	DECLARE @timeEnd time 
+	BEGIN 
+		SELECT @timeStart = time_start FROM [Group Schedule] WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted) 
+		SELECT @timeEnd = time_end FROM [Group Schedule] WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted) 
+		PRINT 'currentTime: ' 
+		PRINT @timeStart 
+			SELECT @timeEnd = DATEADD(hour, 1, @timeStart) 
+		PRINT @timeEnd 
+		UPDATE [Group Schedule]
+			SET time_start = @timeStart WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted) 
+		UPDATE [Group Schedule]
+			SET time_end = @timeEnd WHERE id_group_schedule in (SELECT id_group_schedule FROM inserted) 
+END 
 
-GO
-CREATE TRIGGER GymMemberDELETE on [Gym Membership]
-INSTEAD OF DELETE
-AS
-BEGIN
-	DELETE FROM [Gym Membership] WHERE id_gym_membership in (SELECT id_gym_membership from deleted)
-	DELETE FROM [Client Directory] WHERE gym_membership_id in (SELECT gym_membership_id from deleted)
-END
--------------------------------------------------------------------------------------------------------------------------
+UPDATE [Group Schedule] set time_start = '18:00' where id_group_schedule = 1 
+SELECT * FROM [Group Schedule] 
+
+-----------------------------------------------------------------------------------------------------------------------— 
+
+GO 
+CREATE TRIGGER UPDATING_TIME_INDIVID_SCHEDULE ON [Individual Schedule] 
+AFTER UPDATE 
+AS 
+	DECLARE @timeStart time 
+	DECLARE @timeEnd time 
+	BEGIN 
+		SELECT @timeStart = time_start FROM [Individual Schedule]  WHERE id_individual_work in (SELECT id_individual_work FROM inserted) 
+		SELECT @timeEnd = time_end FROM [Individual Schedule]  WHERE id_individual_work in (SELECT id_individual_work FROM inserted) 
+		PRINT 'currentTime: ' 
+		PRINT @timeStart 
+			SELECT @timeEnd = DATEADD(hour, 1, @timeStart) 
+		PRINT @timeEnd 
+		UPDATE [Individual Schedule] 
+			SET time_start = @timeStart WHERE id_individual_work in (SELECT id_individual_work FROM inserted) 
+		UPDATE [Individual Schedule] 
+			SET time_end = @timeEnd WHERE id_individual_work in (SELECT id_individual_work FROM inserted) 
+END 
+
+UPDATE [Individual Schedule] set time_start = '18:00' where id_individual_work = 3
+
+SELECT * FROM [Individual Schedule]
