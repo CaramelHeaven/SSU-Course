@@ -48,8 +48,8 @@ CREATE TABLE [Individual Schedule]
 	time_start time NOT NULL,
 	time_end time NOT NULL,
 	date_individual date NOT NULL,
-	client_id int NOT NULL,
-	trainer_id int NOT NULL
+	client_id int NULL,
+	trainer_id int NULL
 )
 GO
 
@@ -112,70 +112,60 @@ ALTER TABLE [Gym Membership]
 WITH CHECK ADD CONSTRAINT [Gym_fk] FOREIGN KEY (sale) 
 REFERENCES Sale(id_sale)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Client Directory]
 WITH CHECK ADD CONSTRAINT [Client_fk] FOREIGN KEY (gym_membership_id)
 REFERENCES [Gym Membership]([id_gym_membership])
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Individual Schedule]
 WITH CHECK ADD CONSTRAINT [IS_fk0_client_id] FOREIGN KEY (client_id)
 REFERENCES [Client Directory](id_client)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Individual Schedule]
 WITH CHECK ADD CONSTRAINT [IS_fk1_trainer_id] FOREIGN KEY (trainer_id)
 REFERENCES [Trainer Directory](id_trainer)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
-ALTER TABLE [Group Schedule]
-WITH CHECK ADD CONSTRAINT [GS_fk0_group_id] FOREIGN KEY (group_id)
-REFERENCES [Group work](id_group_work)
-ON UPDATE CASCADE
-ON DELETE CASCADE
-GO
+--ALTER TABLE [Group Schedule]
+--WITH CHECK ADD CONSTRAINT [GS_fk0_group_id] FOREIGN KEY (group_id)
+--REFERENCES [Group work](id_group_work)
+--ON UPDATE CASCADE
+--GO
 
 ALTER TABLE [Group Schedule]
 WITH CHECK ADD CONSTRAINT [GS_fk1_trainer_id] FOREIGN KEY (trainer_id)
 REFERENCES [Trainer Directory](id_trainer)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Group Schedule]
 WITH CHECK ADD CONSTRAINT [GS_fk2_place_id] FOREIGN KEY (place_id)
 REFERENCES Place(id_place)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Group Schedule]
 WITH CHECK ADD CONSTRAINT [GS_fk3_type_of_sport_id] FOREIGN KEY (type_of_sport_id)
 REFERENCES [Kind of Sport](id_kind)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE [Group work]
 WITH CHECK ADD CONSTRAINT [GW_fk_get_people] FOREIGN KEY (get_people)
 REFERENCES ClientTrace(id_group_client)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 ALTER TABLE ClientTrace
 WITH CHECK ADD CONSTRAINT [CT_fk_client_id] FOREIGN KEY (client_id)
 REFERENCES [Client Directory](id_client)
 ON UPDATE CASCADE
-ON DELETE CASCADE
 GO
 
 --------------------------------------------------------------------------------------------------------------------
@@ -288,17 +278,11 @@ SELECT * FROM [Group work]
 
 insert into [Group Schedule] values (1, 1, 2, 3, '10:00', '11:00', 'Saturday', 1);
 insert into [Group Schedule] values (2, 2, 3, 1, '14:00', '16:00', 'Tuesday', 3);
-insert into [Group Schedule] values (3, 1, 2, 1, '11:35', '12:50', 'Tuesday', 2);
-insert into [Group Schedule] values (4, 2, 1, 1, '14:00', '16:00', 'Friday', 2);
-insert into [Group Schedule] values (5, 1, 1, 1, '13:50', '15:40', 'Sunday', 1);
-insert into [Group Schedule] values (6, 2, 2, 1, '20:00', '21:25', 'Wednesday', 2);
-insert into [Group Schedule] values (7, 2, 2, 1, '20:00', '21:25', 'Wednesday', 2);
-insert into [Group Schedule] values (9, 3, 3, 2, '20:00', '21:25', 'Wednesday', 3);
 
 insert into [Individual Schedule] values (1, '7:00', '8:15', '2014-3-27', 10, 3);
 insert into [Individual Schedule] values (2, '14:35', '15:45', '2016-4-22', 12, 4);
 insert into [Individual Schedule] values (3, '20:35', '22:25', '2018-7-2', 14, 5);
-insert into [Individual Schedule] values (5, '20:35', '22:25', '2018-7-2', 14, 5);
+
 
 select * from [Individual Schedule]
 	--id_group_schedule int NOT NULL CONSTRAINT PK_grp_schedule PRIMARY KEY,
@@ -324,69 +308,170 @@ SELECT * FROM [Sale]
 
 DROP TRIGGER delete_user
 
------------------------------------------------------------------------------------------------------------------------— 
-
 DELETE FROM [Client Directory] where id_client = 1 
 
------------------------------------------------------------------------------------------------------------------------— 
-DROP TRIGGER deleteUser
 
-GO 
-CREATE TRIGGER deleteUser ON [Client Directory] 
-FOR DELETE 
-AS 
-	BEGIN 
-		DELETE FROM [Client Directory] WHERE [Client Directory].id_client in (SELECT id_client FROM deleted) 
-		DELETE FROM [Gym Membership] WHERE [Gym Membership].id_gym_membership in (SELECT id_client FROM deleted) 
-END 
+DROP TRIGGER DELETE_USER_INDIV
+-----------------------------------------------------------------------------------------------------------------------— 
+GO
+CREATE TRIGGER DELETE_USER_INDIV ON [Client Directory] 
+INSTEAD OF DELETE
+AS
+	DECLARE @idClientTrace int
+	DECLARE @baseId int
+	SELECT @baseId = id_client FROM [Client Directory] where id_client in (SELECT id_client FROM deleted)
+	SELECT @idClientTrace = id_group_client FROM ClientTrace where id_group_client in (SELECT id_client FROM deleted)
+BEGIN
+	IF NOT EXISTS (SELECT * FROM deleted)
+		BEGIN
+			RAISERROR('Client not found', 10, 1)
+			ROLLBACK TRANSACTION
+		END
+	ELSE IF @idClientTrace = @baseId
+		BEGIN
+			PRINT 'Client also deleted from group work'
+			DELETE [Group work] from deleted WHERE deleted.id_client = [Group work].get_people
+			DELETE ClientTrace from deleted WHERE deleted.id_client = ClientTrace.client_id
+		end 
+	ELSE
+		BEGIN
+			PRINT 'Client also deleted from individual schedule'
+			DELETE [Individual Schedule] from deleted WHERE deleted.id_client = [Individual Schedule].client_id 
+			DELETE [Client Directory] from deleted WHERE deleted.id_client = [Client Directory].id_client
+			DELETE [Gym Membership] from deleted WHERE deleted.gym_membership_id = [Gym Membership].id_gym_membership
+		END
+END
 
+DELETE FROM [Client Directory] where id_client = 12
+
+SELECT * FROM [Individual Schedule] 
+SELECT * FROM [Client Directory]
+SELECT * FROM [Gym Membership]
+
+SELECT * FROM ClientTrace
+SELECT * FROM [Group work]
 -----------------------------------------------------------------------------------------------------------------------— 
---id_group_schedule int NOT NULL CONSTRAINT PK_grp_schedule PRIMARY KEY, 
---group_id int NOT NULL, 
---place_id int NOT NULL, 
---trainer_id int NOT NULL, 
---time_start time NOT NULL, 
---time_end time NOT NULL, 
---day_of_week varchar(20) NOT NULL, 
---type_of_sport_id int NOT NULL 
-DROP TRIGGER UPDATE_PLACE 
------------------------------------------------------------------------------------------------------------------------— 
-GO 
-CREATE TRIGGER UPDATE_PLACE ON [Group Schedule] 
-FOR INSERT 
-AS 
-BEGIN 
-	DECLARE @basePlace int 
-	DECLARE @referencePlace int 
-	DECLARE @sizePeople int 
-	SELECT @referencePlace = id_place FROM Place WHERE id_place in (SELECT place_id FROM inserted) 
-	SELECT @basePlace = place_id FROM [Group Schedule] 
-	IF @referencePlace = @basePlace 
-		BEGIN 
-		SELECT @sizePeople = COUNT(*) FROM [Group work] WHERE id_group in (SELECT group_id FROM inserted) 
-		UPDATE Place 
-		SET quantity_place = quantity_place - @sizePeople WHERE id_place = @basePlace 
-		END 
+
+DROP TRIGGER DELETE_TRAINER
+
+GO
+CREATE TRIGGER DELETE_TRAINER ON [Trainer Directory]
+INSTEAD OF DELETE
+AS
+BEGIN
+	DECLARE @idTrainer int
+	DECLARE @randTrainer int
+	DECLARE @randTrainer2 int
+	DECLARE @idIndivTrainer int
+	DECLARE @idGroupTrainer int
+	SELECT @idIndivTrainer = trainer_id FROM [Individual Schedule] WHERE trainer_id in (SELECT id_trainer FROM deleted)
+	SELECT @idGroupTrainer = trainer_id FROM [Group Schedule] WHERE trainer_id in (SELECT id_trainer FROM deleted)
+	SELECT @idTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT id_trainer FROM deleted)
+
+	IF @idTrainer = @idGroupTrainer AND @idTrainer = @idIndivTrainer
+		BEGIN
+			SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())
+			SELECT @randTrainer2 = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())
+			PRINT 'Locating in equals training'
+			PRINT @randTrainer
+			PRINT @randTrainer2
+			PRINT @idTrainer
+			WHILE @randTrainer = @idTrainer 
+				BEGIN
+					SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())
+					PRINT 'Прогоняемся по циклу'
+					PRINT @randTrainer
+				END
+			WHILE @randTrainer2 = @idTrainer
+				BEGIN
+					SELECT @randTrainer2 = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())	
+					PRINT 'Прогоняемся по циклу'
+					PRINT @randTrainer2					
+				END				
+			PRINT 'Updating trainer'
+			PRINT 'rand first'
+			PRINT @randTrainer
+			PRINT 'rand second'
+			PRINT @randTrainer2
+				BEGIN
+					UPDATE [Group Schedule]
+						SET trainer_id = @randTrainer
+				END
+				BEGIN
+					UPDATE [Individual Schedule]
+						SET trainer_id = @randTrainer2
+				END
+		DELETE [Trainer Directory] from deleted where deleted.id_trainer = [Trainer Directory].id_trainer
+		END
 	ELSE 
-	BEGIN 
-		PRINT 'Error for insert UPDATE_PLACE' 
-	ROLLBACK TRANSACTION 
-	END 
-END 
------------------------------------------------------------------------------------------------------------------------— 
---Simply delete for Individual schedule 
-GO 
-CREATE TRIGGER DELETE_INDIDIV_WORK ON [Individual Schedule] 
-FOR DELETE 
-AS 
-BEGIN 
-DELETE FROM [Individual Schedule] WHERE [Individual Schedule].id_individual_work in (SELECT id_individual_work FROM deleted) 
-END 
+		IF @idTrainer = @idGroupTrainer
+		BEGIN
+			SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())
+			PRINT 'Locating in Group schedule'
+			PRINT @randTrainer
+			PRINT @idGroupTrainer
+			WHILE @randTrainer = @idGroupTrainer
+				BEGIN
+					SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())	
+					PRINT @randTrainer				
+				END
+			PRINT 'Updating trainer'
+			PRINT @randTrainer
+			UPDATE [Group Schedule]
+				SET trainer_id = @randTrainer
+		DELETE [Trainer Directory] from deleted where deleted.id_trainer = [Trainer Directory].id_trainer
+		END
+	ELSE 
+		IF @idTrainer = @idIndivTrainer
+		BEGIN
+			SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())
+			PRINT 'Location in Indiv'
+			PRINT @randTrainer
+			PRINT @idGroupTrainer
+			WHILE @randTrainer = @idIndivTrainer
+				BEGIN
+					SELECT @randTrainer = id_trainer FROM [Trainer Directory] WHERE id_trainer in (SELECT TOP 1 id_trainer FROM [Trainer Directory] ORDER BY NEWID())		
+					PRINT @randTrainer												
+				END
+			PRINT 'Updating trainer'
+			PRINT @randTrainer
+			UPDATE [Individual Schedule]
+				SET trainer_id = @randTrainer
+		DELETE [Trainer Directory] from deleted where deleted.id_trainer = [Trainer Directory].id_trainer
+		END
+END
 
-DELETE FROM [Individual Schedule] where id_individual_work = 1 
+DELETE FROM [Trainer Directory] where id_trainer = 1
 
-SELECT * FROM [Individual Schedule]
 SELECT * FROM [Trainer Directory]
+
+SELECT * FROM [Group Schedule]
+SELECT * FROM [Individual Schedule]
+
+GO
+CREATE TRIGGER CHECK_SIZE_PLACE ON [Group Schedule] 
+FOR INSERT
+AS
+BEGIN
+	DECLARE @idGroupWork int
+	DECLARE @sizePeopleGroup int
+	DECLARE @baseSize int
+	SELECT @idGroupWork = id_group FROM [Group work] WHERE id_group in (SELECT group_id FROM inserted)
+	PRINT @idGroupWork
+	SELECT @sizePeopleGroup = COUNT(*) FROM [Group work] WHERE id_group in (SELECT group_id FROM inserted)
+	PRINT @sizePeopleGroup
+	SELECT @baseSize = quantity_place from Place WHERE id_place in (SELECT place_id FROM inserted)
+	PRINT @baseSize
+		IF @sizePeopleGroup >= @baseSize
+		BEGIN
+			PRINT 'Error for insert. Size of group is so much than place where they want to be live'
+			ROLLBACK TRANSACTION
+		END
+END
+
+insert into [Group Schedule] values (5, 1, 3, 3, '10:00', '11:00', 'Saturday', 1);
+
+
 
 -----------------------------------------------------------------------------------------------------------------------— 
 --Обновление времени у группового занятия 
