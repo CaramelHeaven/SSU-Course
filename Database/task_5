@@ -3,16 +3,12 @@ DROP DATABASE GymDb
 CREATE DATABASE GymDb
 USE GymDb
 
---ЖИЗНЕННАЯ КОНСТРУКЦИЯ
-set language english;
-
 CREATE TABLE [Client Directory]
 (
 	id_client int NOT NULL CONSTRAINT PK_client PRIMARY KEY, 
 	first_name varchar(50) NOT NULL,
 	last_name varchar(50) NOT NULL,
 	gym_membership_id int NULL,
-	birthday date NOT NULL,
 )
 GO
 
@@ -21,7 +17,6 @@ CREATE TABLE [Trainer Directory]
 	id_trainer int NOT NULL CONSTRAINT PK_trainer PRIMARY KEY,
 	first_name varchar(50) NOT NULL,
 	last_name varchar(50) NOT NULL,
-	birthday date NOT NULL,
 )
 GO
 
@@ -51,35 +46,6 @@ CREATE TABLE [Individual Schedule]
 	trainer_id int NULL
 )
 GO
-
-CREATE TABLE [Group Schedule]
-(
-	id_group_schedule int NOT NULL CONSTRAINT PK_grp_schedule PRIMARY KEY,
-	group_id int NOT NULL,
-	place_id int NOT NULL,
-	trainer_id int NOT NULL,
-	time_start time NOT NULL,
-	time_end time NOT NULL,
-	day_of_week varchar(20) NOT NULL,
-	type_of_sport_id int NOT NULL
-)
-GO
-
-CREATE TABLE [Kind of Sport]
-(
-	id_kind int NOT NULL CONSTRAINT PK_id_kind PRIMARY KEY,
-	name_kind varchar(50) NOT NULL
-)
-GO
-
-CREATE TABLE Place
-(
-	id_place int NOT NULL CONSTRAINT PK_place PRIMARY KEY,
-	name_place varchar(50) NOT NULL,
-	quantity_place int NOT NULL
-)
-GO
-
 
 CREATE TABLE ClientTrace
 (
@@ -137,24 +103,6 @@ GO
 --ON UPDATE CASCADE
 --GO
 
-ALTER TABLE [Group Schedule]
-WITH CHECK ADD CONSTRAINT [GS_fk1_trainer_id] FOREIGN KEY (trainer_id)
-REFERENCES [Trainer Directory](id_trainer)
-ON UPDATE CASCADE
-GO
-
-ALTER TABLE [Group Schedule]
-WITH CHECK ADD CONSTRAINT [GS_fk2_place_id] FOREIGN KEY (place_id)
-REFERENCES Place(id_place)
-ON UPDATE CASCADE
-GO
-
-ALTER TABLE [Group Schedule]
-WITH CHECK ADD CONSTRAINT [GS_fk3_type_of_sport_id] FOREIGN KEY (type_of_sport_id)
-REFERENCES [Kind of Sport](id_kind)
-ON UPDATE CASCADE
-GO
-
 ALTER TABLE [Group work]
 WITH CHECK ADD CONSTRAINT [GW_fk_get_people] FOREIGN KEY (get_people)
 REFERENCES ClientTrace(id_group_client)
@@ -174,9 +122,6 @@ insert Sale(id_sale, procent_of_sale) values (3, 9);
 insert Sale(id_sale, procent_of_sale) values (4, 12);
 insert Sale(id_sale, procent_of_sale) values (5, 16);
 
-insert[Gym Membership](id_gym_membership, day_of_start, day_of_end, price_of_membership, sale) 
-values (1, '2014-4-27', '2014-6-25', 4023, 1);
-
 --------------------------------------------------------------------------------------------------------------------
 
 SELECT * FROM [Group Schedule]
@@ -192,72 +137,87 @@ DELETE [Gym Membership]
 SELECT * FROM ClientTrace
 SELECT * FROM [Sale]
 
-DROP TRIGGER delete_user
 
-DELETE FROM [Client Directory] where id_client = 1 
+--ЖИЗНЕННАЯ КОНСТРУКЦИЯ
+set language english;
 
-SELECT     CAST(CAST(CAST('20060113' AS datetime) AS float) + (RAND() * (62 * 60 + 3)) / (24 * 60 * 60) AS datetime)
-SELECT FLOOR(RAND()*(6-1)+1)
--------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
 
---id_gym_membership int NOT NULL CONSTRAINT PK_gym PRIMARY KEY,
---	day_of_start date NOT NULL,
---	day_of_end date NOT NULL,
---	price_of_membership int NOT NULL,
---	sale int NOT NULL,
+CREATE NONCLUSTERED INDEX FIND_MEM ON [Gym Membership](day_of_start, day_of_end)
 
-
-SELECT * FROm [Gym Membership]
-DELETE [Gym Membership]
-
-
---SET INDEXS
-CREATE NONCLUSTERED INDEX price ON [Gym Membership](price_of_membership)
-
---Смотрим сколько человек в одной групповой тренировке Inner Join
-select * from [Group work] inner join [Client Directory] on [Group work].get_people = [Client Directory].id_client where name_group = 'Group № 1'
-
---Количество групповых занятий по вторнику
-select COUNT(*) from [Group Schedule] where day_of_week = 'Tuesday'
-
---Выбрать тренеров между двумя датами рождения
-select * from [Trainer Directory] where [Trainer Directory].birthday between '1975-6-14' and '1987-1-16'
-
---Выводим оплату клиента которую имеют скидку 4% или 9%
-select price_of_membership from [Gym Membership] where [Gym Membership].sale > 2 AND price_of_membership > ANY (select price_of_membership from [Gym Membership] where
-[Gym Membership].sale = 3)
-
---Выводим время занятий меньше 14:00 часов дня и при это мы проверяем, что места совпадают
-select time_start, time_end, [Group Schedule].day_of_week from [Group Schedule] join [Trainer Directory] on [Trainer Directory].id_trainer = id_group_schedule
-join Place on Place.id_place = place_id where time_start < '14:00'
+DROP INDEX FIND_MEM ON [Gym Membership]
 
 --Выделяем клиентов, у которых срок конца абонемента меньше 2018 года
-select day_of_start, day_of_end, first_name, last_name, [Gym Membership].price_of_membership from [Gym Membership] join [Client Directory] on [Client Directory].id_client = id_gym_membership
-where day_of_end < '2018-5-23' 
+SET STATISTICS IO ON
+SET STATISTICS TIME ON
 
---Выводим список клиентов у которых есть индивидуальное занятие и их тренеров
-select * from [Client Directory] join [Individual Schedule] on [Client Directory].id_client = [Individual Schedule].client_id join [Trainer Directory]
-on [Individual Schedule].trainer_id = [Trainer Directory].id_trainer 
+select day_of_start, day_of_end, first_name, last_name, price_of_membership 
+	from [Gym Membership] 
+		join [Client Directory] 
+			on [Client Directory].id_client = id_gym_membership
+where day_of_end < '2021-5-23'  AND day_of_start > '2015-10-3'
 
---Выводим названия залов у групповых занятий
-select name_place, COUNT(*) from Place join [Group Schedule] on Place.id_place = [Group Schedule].place_id group by name_place
+------------------------------------------------------------------------------------------------------------
 
---Выводим групповые занятия, если до 12 часов - топ пишем АМ, иначе после обеда занятие
-select *, case when time_start < '12:00' then 'AM time' when time_start > '12:00' then 'PM time' end as 'Time working' from [Group Schedule]
+CREATE NONCLUSTERED INDEX FIND_SALE ON [Gym Membership](sale, price_of_membership)
 
---Выводим среднюю плату клиентов за абонемент
-select CAST(AVG(price_of_membership) as char(10)) 'Middle price Clients' from [Gym Membership] 
-
---Выводим среднюю зарплату тренеров
-select CAST(AVG(salary) as char(10)) 'Middle price Trainers' from [Trainer Directory]
-
---Сортируем клиентов по рождению
-select id_client, first_name, last_name, birthday, (select DATEDIFF(YEAR, birthday, GETDATE())) 'Age client' from [Client Directory] order by birthday
-
-
+DROP INDEX FIND_SALE ON [Gym Membership]
 
 SET STATISTICS IO ON
 SET STATISTICS TIME ON
-SELECT * FROM [Gym Membership] WHERE price_of_membership = 41292
+--Выводим клиентов где скидка больше двух и по крайней мере цена их больше 49279
+select sale, price_of_membership from [Gym Membership] 
+	where [Gym Membership].sale > 2 
+		AND price_of_membership > 
+			ANY (select price_of_membership from [Gym Membership] where
+[Gym Membership].price_of_membership > 10000)
 
+------------------------------------------------------------------------------------------------------------
 
+CREATE NONCLUSTERED INDEX FIND_PEOPLE ON [Group Work](get_people)
+
+DROP INDEX FIND_PEOPLE ON [Group Work]
+
+SET STATISTICS IO ON
+SET STATISTICS TIME ON
+--Смотрим сколько человек в одной групповой тренировке Inner Join
+select name_group FROM [Group work] 
+	inner join [Client Directory] 
+		on [Group work].get_people = [Client Directory].id_client 
+			where get_people > 1
+
+SELECT * FROM [Group work]
+
+------------------------------------------------------------------------------------------------------------
+
+CREATE NONCLUSTERED INDEX FIND_INDV ON [Client Directory](id_client)
+
+DROP INDEX FIND_INDV ON [Client Directory]
+
+SET STATISTICS IO ON
+SET STATISTICS TIME ON
+--Выводим список клиентов у которых есть индивидуальное занятие и их тренеров
+select id_client FROM [Client Directory] 
+	join [Individual Schedule] 
+		on [Client Directory].id_client = [Individual Schedule].client_id 
+	join [Trainer Directory]
+		on [Individual Schedule].trainer_id = [Trainer Directory].id_trainer 
+			where id_client > 300 AND gym_membership_id > 302
+
+SELECT * FROM [Client Directory]
+------------------------------------------------------------------------------------------------------------
+
+CREATE NONCLUSTERED INDEX FINDDD ON [Individual Schedule](time_start, time_end)
+
+DROP INDEX FINDDD ON [Individual Schedule]
+
+SET STATISTICS IO ON
+SET STATISTICS TIME ON
+--Выводим время старта и время окончания индивидуального занятия где есть определенные тренера и начало строго больше 10 утра
+select time_start, time_end FROM [Individual Schedule] 
+	join [Trainer Directory] 
+		on [Trainer Directory].id_trainer > 10 where time_start > '10:00'
+
+SELECT * FROM [Individual Schedule]
+
+------------------------------------------------------------------------------------------------------------
