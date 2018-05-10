@@ -167,19 +167,22 @@ DROP proc checkName
 SELECT * FROM [Trainer Directory] inner join [Individual Schedule] on [Trainer Directory].id_trainer = [Individual Schedule].trainer_id
 inner join [Client Directory] on [Client Directory].id_client = [Individual Schedule].client_id
 
+
 DROP PROC getTrainerClientINDV
 
 GO
 create proc getTrainerClientINDV @firstName as varchar(20), @lastName as varchar(20)
   as
-	select [Client Directory].first_name, [Client Directory].last_name FROM [Client Directory]
-	inner join [Individual Schedule] on [Client Directory].id_client = [Individual Schedule].client_id
-	inner join [Trainer Directory] on [Trainer Directory].id_trainer = [Individual Schedule].trainer_id where [Trainer Directory].first_name = @firstName AND
-	[Trainer Directory].last_name = @lastName
+	SELECT * FROM [Trainer Directory] inner join [Individual Schedule] on [Trainer Directory].id_trainer = [Individual Schedule].trainer_id
+	inner join [Client Directory] on [Client Directory].id_client = [Individual Schedule].client_id 
+		AND [Client Directory].first_name = @firstName 
+			AND [Client Directory].last_name = @lastName
 
-EXEC getTrainerClientINDV 'Christoper', 'Juan'
+EXEC getTrainerClientINDV 'Kris', 'Juan'
 
 ---------------------------------------------------------------------------------------------------------
+
+DROP proc checkName
 
 GO
 CREATE PROCEDURE checkName @firstName varchar(20), @lastName as varchar(20)
@@ -193,9 +196,9 @@ CREATE PROCEDURE checkName @firstName varchar(20), @lastName as varchar(20)
 			PRINT 'This person is not exists'
 
 
-EXEC checkName 'Elon', 'Lieven'
+EXEC checkName 'Elon', 'Lieytuven'
 
-SELECT * FROM [Client Directory] where first_name = 'Elon' AND last_name = 'Lieven'
+SELECT * FROM [Client Directory] where first_name = 'Elon' AND last_name = 'Liyuytueven'
 
 ---------------------------------------------------------------------------------------------------------
 
@@ -205,10 +208,13 @@ SELECT * FROM [Gym Membership]
 DROP proc discount
 
 GO
-CREATE PROCEDURE discount @idSale INT
+CREATE PROCEDURE dbo.discount @idSale INT
 	AS
 		IF (@idSale = 1) 
-				SELECT id_gym_membership, sale, price_of_membership =  price_of_membership - price_of_membership * 1 / 100 FROM [Gym Membership] where sale = @idSale
+		begin
+				SELECT * FROM [Client Directory] inner join [Gym Membership] on [Client Directory].gym_membership_id = [Gym Membership].id_gym_membership AND [Gym Membership].sale = @idSale
+				---and inner join price_of_membership from [Gym Membership].price_of_membership =  price_of_membership - price_of_membership * 4 / 100 FROM [Gym Membership] where sale = @idSale
+				end
 			ELSE IF (@idSale = 2)
 				SELECT id_gym_membership, sale, price_of_membership =  price_of_membership - price_of_membership * 4 / 100 FROM [Gym Membership] where sale = @idSale
 			ELSE IF (@idSale = 3)
@@ -220,25 +226,46 @@ CREATE PROCEDURE discount @idSale INT
 			ELSE
 				SELECT id_gym_membership, sale, price_of_membership FROM [Gym Membership] 
 
-EXEC discount 3
+EXEC discount 5
 
----------------------------------------------------------------------------------------------------------
---day_of_start datetime NOT NULL,
---	day_of_end datetime NOT NULL,
 
 SELECT * FROM [Gym Membership]
 
-drop proc countingSumClient
+drop proc countingSumClients
 
 GO
-CREATE PROCEDURE countingSumClient @dayOfStart datetime, @dayOfEnd datetime
+CREATE PROCEDURE countingSumClients @dayOfStart datetime, @dayOfEnd datetime
 	AS IF
 		@dayOfStart in (select [Gym Membership].day_of_start from [Gym Membership])
 			DECLARE @totalPrice INT
-			SELECT id_gym_membership, day_of_start, day_of_end FROM [Gym Membership] where day_of_start >= @dayOfStart AND day_of_end < @dayOfEnd
+			SELECT * FROM [Gym Membership] where day_of_start >= @dayOfStart AND day_of_end < @dayOfEnd
+			SELECT SUM(price_of_membership) from [Gym Membership] where day_of_start >= @dayOfStart AND day_of_end < @dayOfEnd
 		--		 @dayOfEnd in (select [Gym Membership].day_of_end from [Gym Membership] where day_of_end < @dayOfEnd)
 
 
-EXEC countingSumClient '2011-10-20 08:00:00', '2023-5-8 22:00:00'
+EXEC countingSumClients '2015-10-20 08:00:00', '2020-5-8 22:00:00'
 
-select [Gym Membership].day_of_start from [Gym Membership] where day_of_start > '2011-10-20 08:00:00'
+--------------------------------------------------------------------------------------------------------
+--not working
+GO
+create procedure eX @id int, @firstName varchar(50) as
+	declare @CURSOR CURSOR
+	declare @first varchar(50) = @firstName
+	declare @i int = @id
+
+	SET @CURSOR = CURSOR SCROLL
+	FOR
+	SELECT id_client, first_name from [Client Directory]
+
+	OPEN @CURSOR
+	FETCH NEXT FROM @CURSOR INTO @i, @first
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	UPDATE [Client Directory]
+		SET first_name = @firstName
+	END
+	FETCH NEXT FROM @CURSOR INTO @i, @first
+	END
+CONVERSATION @CURSOR
+
+drop proc eX
