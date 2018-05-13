@@ -8,19 +8,18 @@ public class DiagramsFrame {
     private int startX = 300;
     private int startY = 400;
     private int startY2;
-    ArrayList<Double> x, y;
+    ArrayList<Double> x, y, x1;
 
-    private int ScaleX = 200;
-    private int ScaleY = 200;
+    private int ScaleX = 20;
+    private int ScaleY = 10;
 
-    public void drawFrame(ArrayList<Double> x, ArrayList<Double> y) {
+    public void drawFrame(ArrayList<Double> x, ArrayList<Double> y, ArrayList<Double> x1) {
         this.x = x;
         this.y = y;
-
+        this.x1 = x1;
 
         frame = new JFrame();
         diagram = new DiagramPanel();
-
 
         frame.getContentPane().add(BorderLayout.CENTER, diagram);
         frame.setVisible(true);
@@ -40,6 +39,7 @@ public class DiagramsFrame {
             grid(g);
             diagramAxes(g);
             graph_XY(g);
+            graph_XY1(g);
             label(g);
         }
 
@@ -69,6 +69,25 @@ public class DiagramsFrame {
             }
         }
 
+        private void graph_XY1(Graphics g) {
+            g.setColor(Color.BLACK);
+            System.out.println(x.toString());
+            System.out.println(y.toString());
+            double aX, aY;
+            double bX, bY;
+            aX = x1.get(0) * ScaleX + startX;
+            aY = startY2 - y.get(0) * ScaleY;
+
+            for (int i = 1; i < x.size(); i++) {
+
+                bX = (x1.get(i) * ScaleX + startX);
+                bY = (startY2 - y.get(i) * ScaleY);
+                g.drawLine((int) aX, (int) aY, (int) bX, (int) bY);
+                aX = bX;
+                aY = bY;
+            }
+        }
+
         //field
         private void grid(Graphics g) {
             for (int i = 0; i < getHeight(); i += 20) {
@@ -82,16 +101,15 @@ public class DiagramsFrame {
         }
 
         private void label(Graphics g) {
+            int k = 0;
             for (int i = 0; i < getWidth(); i += 40) {
-                double j = i;
-                double tempScale = ScaleX;
-                g.drawString(String.valueOf(j / tempScale), (int) (i + startX), (int) (startY2 + 10));
+                g.drawString(String.valueOf(k), (int) (i + startX), (int) (startY2 + 10));
+                k = k + 1;
             }
             for (int i = 0; i < getHeight(); i += 40) {
                 double j = i;
                 double tempScale = ScaleY;
                 g.drawString(String.valueOf(j / tempScale), startX, startY2 - i);
-
             }
         }
     }
