@@ -1,66 +1,73 @@
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Task_9 {
+public class Task9 {
 
-    private static List<Request> requestList = new ArrayList<>();
-    private static final double LYAMBDA = 2.0;
+    private static List<Person> firstQueue = new ArrayList<>();
+    private static List<Person> secondQueue = new ArrayList<>();
 
     public static void main(String[] args) {
 
+        double currentTime = 0;
 
-        double currentTime = 0, startServiceTime = 0;
-        double endServiceTime = (-1 / LYAMBDA) * Math.log(Math.random() + 0.0000001);
+        for (int i = 0; i < 3; i++) {
+            if (i == 0) {
+                double timeWork = Math.random();
+                firstQueue.add(new Person(currentTime, timeWork, currentTime + timeWork));
+                currentTime = currentTime + timeWork;
+            }
 
-        System.out.println(endServiceTime);
+            double choose = Math.random();
 
-        requestList.add(new Request(currentTime, startServiceTime, endServiceTime));
-
-        for (int q = 0; q < 1000; q++) {
-            double tempNextCurrent = currentTime + (-1 / LYAMBDA) * Math.log(Math.random() + 0.0000001);
-            if (endServiceTime > tempNextCurrent) {
-                startServiceTime = endServiceTime - currentTime;
+            //choose where we put our person in queue,,, secondQueue - > 0.5
+            //где меньше, туда и пойдет
+            if (choose > 0.5) {
+                if ((secondQueue.size() < 3) && i > 0) {
+                    double timeWorking = Math.random();
+                    secondQueue.add(new Person(currentTime, timeWorking, currentTime + timeWorking));
+                    currentTime = currentTime + timeWorking;
+                }
             } else {
-                
+                if ((firstQueue.size() < 3) && i > 0) {
+                    double timeWorking = Math.random();
+                    firstQueue.add(new Person(currentTime, timeWorking, currentTime + timeWorking));
+                    currentTime = currentTime + timeWorking;
+                }
             }
         }
 
-        for (int i = 0; i < 1000; i++) {
-            double temp_current_next = currentTime + (-1 / LYAMBDA) * Math.log(Math.random() + 0.0000001);
-            if (endServiceTime > temp_current_next) {
-                //end service - 2, curent - 1
-                startServiceTime = endServiceTime - currentTime;
-            } else {
-                //а потом время обслуживания второго генерим
-                startServiceTime = temp_current_next;
-            }
-            requestList.add(new Request(temp_current_next, startServiceTime, endServiceTime));
-        }
+        System.out.println("first: " + firstQueue);
+        System.out.println("second: " + secondQueue);
+
     }
 
+    static class Person {
+        private double current;
+        private double timeWorking;
+        private double endTime;
 
-    static class Request {
-        private double currentTime;
-        private double startService;
-        private double endService;
-
-
-        public Request(double currentTime, double startService, double endService) {
-            this.currentTime = currentTime;
-            this.startService = startService;
-            this.endService = endService;
+        @Override
+        public String toString() {
+            return "current: " + getCurrent() + " startTime: " + getTimeWorking() + " endTime: " + getEndTime();
         }
 
-        public double getEndService() {
-            return endService;
+        public Person(double current, double timeWorking, double endTime) {
+            this.current = current;
+            this.timeWorking = timeWorking;
+            this.endTime = endTime;
         }
 
-        public double getStartService() {
-            return startService;
+        public double getCurrent() {
+            return current;
         }
 
-        public double getCurrentTime() {
-            return currentTime;
+        public double getEndTime() {
+            return endTime;
+        }
+
+        public double getTimeWorking() {
+            return timeWorking;
         }
     }
 }
