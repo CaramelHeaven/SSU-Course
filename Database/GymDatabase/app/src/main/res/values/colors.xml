@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#232323</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#F73E5F</color>
+
+    <color name="colorDark">#000000</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorForToolbar">#2d2d2d</color>
+    <color name="colorForNavigationBar">#202020</color>
+
+    <color name="fabDelete">#1F7C65</color>
+    <color name="fabInsert">#BF6530</color>
+</resources>

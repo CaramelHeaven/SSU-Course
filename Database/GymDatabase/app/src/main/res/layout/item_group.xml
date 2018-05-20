@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/group_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:text="Id gropd: 1"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size14" />
+
+            <TextView
+                android:id="@+id/trainer_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_toEndOf="@id/group_id"
+                android:text="Trainer lala"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size14" />
+
+            <TextView
+                android:id="@+id/type_of_sport_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_toEndOf="@id/trainer_id"
+                android:text="id sport type"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size14" />
+
+            <TextView
+                android:id="@+id/time_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/group_id"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:text="time start: 11:00"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size12" />
+
+            <TextView
+                android:id="@+id/time_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/trainer_id"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_toEndOf="@id/time_start"
+                android:text="time end: 12:00"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size12" />
+
+            <TextView
+                android:id="@+id/day_of_week"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="16dp"
+                android:text="Saturday"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/place_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/group_id"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_toEndOf="@id/time_end"
+                android:text="place: safsaf"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size12" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/time_start"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:background="#c2c2c2" />
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+</RelativeLayout>

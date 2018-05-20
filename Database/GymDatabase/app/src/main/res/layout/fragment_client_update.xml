@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter id"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter name"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter last name"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etId"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textAutoCorrect" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textAutoCorrect" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etLastName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textAutoCorrect" />
+    </LinearLayout>
+
+
+    <Button
+        android:id="@+id/buttonOk"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_bg"
+        android:text="Ok"
+        android:textColor="@color/colorWhite"
+        android:textSize="@dimen/size14"
+        android:textStyle="bold"
+        android:theme="@style/ToolbarStyle" />
+
+</LinearLayout>

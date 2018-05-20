@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter name"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter last name"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etName"
+            android:layout_width="0dp"
+            android:inputType="textAutoCorrect"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etLastName"
+            android:layout_width="0dp"
+            android:inputType="textAutoCorrect"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter day of start"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter day of end"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etDayStart"
+            android:layout_width="0dp"
+            android:inputType="datetime"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etDayEnd"
+            android:inputType="datetime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter price"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:layout_marginStart="30dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Enter sale"
+            android:textColor="@color/colorDark"
+            android:textSize="@dimen/size12" />
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/etSale"
+            android:inputType="number"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonOk"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:background="@drawable/button_bg"
+        android:text="Add"
+        android:textColor="@color/colorWhite"
+        android:textSize="@dimen/size14"
+        android:textStyle="bold"
+        android:theme="@style/ToolbarStyle" />
+
+</LinearLayout>

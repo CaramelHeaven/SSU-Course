@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/idClient"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="105:"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/firstName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_toRightOf="@id/idClient"
+                android:text="Sonia"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/lastName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_toRightOf="@id/firstName"
+                android:text="Ahn"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/idGym"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/idClient"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="gym id: 80"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/dayStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/firstName"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_toRightOf="@id/idGym"
+                android:text="2012-22=22"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <TextView
+                android:id="@+id/dayEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/firstName"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_toRightOf="@id/dayStart"
+                android:text="2021-12-25"
+                android:textColor="@color/colorDark"
+                android:textSize="@dimen/size16" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/idGym"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:background="#c2c2c2" />
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+</RelativeLayout>
