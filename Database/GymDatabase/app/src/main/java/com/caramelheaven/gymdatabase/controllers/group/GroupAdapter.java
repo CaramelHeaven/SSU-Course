@@ -2,6 +2,7 @@ package com.caramelheaven.gymdatabase.controllers.group;
 
 import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,12 +10,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.caramelheaven.gymdatabase.R;
+import com.caramelheaven.gymdatabase.utils.OnItemClickListener;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private OnItemClickListener onItemClickListener;
     List<HashMap<String, String>> groupList;
     List<HashMap<String, String>> placeList;
     List<HashMap<String, String>> kindOfSportList;
@@ -30,6 +33,10 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     public List<HashMap<String, String>> getGroupList() {
         return groupList;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
     }
 
     @NonNull
@@ -114,7 +121,7 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return groupList.size();
     }
 
-    private class GroupVH extends RecyclerView.ViewHolder {
+    private class GroupVH extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         TextView day_of_week;
         TextView time_start;
@@ -123,6 +130,7 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         TextView type_of_sport_id;
         TextView group_id;
         TextView place_id;
+        CardView cardView;
 
         GroupVH(View itemView) {
             super(itemView);
@@ -133,6 +141,13 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             type_of_sport_id = itemView.findViewById(R.id.type_of_sport_id);
             group_id = itemView.findViewById(R.id.group_id);
             place_id = itemView.findViewById(R.id.place_id);
+            cardView = itemView.findViewById(R.id.cardView);
+            cardView.setOnClickListener(this::onClick);
+        }
+
+        @Override
+        public void onClick(View v) {
+            onItemClickListener.onItemClick(getAdapterPosition(), v);
         }
     }
 }

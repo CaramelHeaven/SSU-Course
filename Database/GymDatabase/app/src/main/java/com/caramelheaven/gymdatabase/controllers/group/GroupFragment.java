@@ -1,6 +1,7 @@
 package com.caramelheaven.gymdatabase.controllers.group;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -26,6 +27,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
+import com.caramelheaven.gymdatabase.controllers.group.more.GroupInformationActivity;
+import com.caramelheaven.gymdatabase.utils.OnItemClickListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -118,6 +121,18 @@ public class GroupFragment extends Fragment {
             fabDelete.setVisibility(View.GONE);
             fabUpdate.setVisibility(View.GONE);
         }
+
+        setGroupFirebase();
+
+        adapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, View view) {
+                int temp = position + 1;
+                Intent intent = new Intent(getContext(), GroupInformationActivity.class);
+                intent.putExtra("KEY", String.valueOf(temp));
+                startActivity(intent);
+            }
+        });
 
         recyclerView.setAdapter(adapter);
     }

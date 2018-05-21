@@ -88,6 +88,8 @@ public class DialogAddFragment extends DialogFragment {
                 List<HashMap<String, String>> groupSchedule = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .getValue();
                 COUNT = groupSchedule.size();
+                //потому что у нас почему-то id нумерация начинается с 1, а не с 0. fuck. nice костыль
+                COUNT++;
             }
 
             @Override

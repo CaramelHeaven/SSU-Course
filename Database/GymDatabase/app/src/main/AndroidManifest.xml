@@ -27,6 +27,7 @@
         <activity
             android:name=".controllers.login.LoginActivity"
             android:label="@string/title_activity_login" />
+        <activity android:name=".controllers.group.more.GroupInformationActivity" />
     </application>
 
 </manifest>
