@@ -1,4 +1,4 @@
-package com.caramelheaven.gymdatabase.controllers.clients;
+package com.caramelheaven.gymdatabase.controllers.group;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,7 +14,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
-import com.caramelheaven.gymdatabase.datasourse.model.ClientDirectory;
+import com.caramelheaven.gymdatabase.controllers.MainActivity;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -25,8 +25,8 @@ public class DialogUpdateFragment extends DialogFragment {
 
     private DatabaseReference firebaseUpdate;
     private AppCompatEditText inputId;
-    private AppCompatEditText inputName;
-    private AppCompatEditText inputNameL;
+    private AppCompatEditText inputTimeStart;
+    private AppCompatEditText inputTimeEnd;
     private Button button;
 
     public static DialogUpdateFragment newInstance() {
@@ -41,33 +41,36 @@ public class DialogUpdateFragment extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         getDialog().setCanceledOnTouchOutside(true);
-        return inflater.inflate(R.layout.fragment_client_update, container, false);
+        return inflater.inflate(R.layout.fragment_group_update, container, false);
+
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         inputId = view.findViewById(R.id.etId);
-        inputName = view.findViewById(R.id.etName);
-        inputNameL = view.findViewById(R.id.etLastName);
+        inputTimeEnd = view.findViewById(R.id.etTimeEnd);
+        inputTimeStart = view.findViewById(R.id.etTimeStart);
+
         button = view.findViewById(R.id.buttonOk);
 
-        firebaseUpdate = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/ClientDirectory");
+        firebaseUpdate = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GroupSchedule");
 
         button.setOnClickListener(v -> {
-            String name = inputName.getText().toString();
-            String lastName = inputNameL.getText().toString();
-            String key = inputId.getText().toString();
+            String id = inputId.getText().toString();
+            String timeEnd = inputTimeEnd.getText().toString();
+            String timeStart = inputTimeStart.getText().toString();
 
-            //take our child from array [0...120] and changed his fields
-            DatabaseReference child = firebaseUpdate.child(key);
+            DatabaseReference child = firebaseUpdate.child(id);
 
             Map<String, Object> map = new HashMap<>();
-            map.put("first_name", name);
-            map.put("last_name", lastName);
+            map.put("time_end", timeEnd);
+            map.put("time_start", timeStart);
 
             child.updateChildren(map);
-        });
 
+            Toast.makeText(getContext(), "Групповое расписание обновлено", Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
@@ -83,6 +86,4 @@ public class DialogUpdateFragment extends DialogFragment {
         super.onDestroyView();
         firebaseUpdate.onDisconnect();
     }
-
-
 }

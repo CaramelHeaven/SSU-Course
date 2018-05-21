@@ -26,11 +26,20 @@ public class IndividualAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         this.trainersList = trainersList;
     }
 
+    public List<HashMap<String, String>> getIndividualsList() {
+        return individualsList;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_individual, parent, false);
         return new IndividualVH(view);
+    }
+
+    public void updateAdapterFromDeleted(List<HashMap<String, String>> updated) {
+        individualsList = updated;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -41,22 +50,9 @@ public class IndividualAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         HashMap<String, String> hashClient = clientsList.get(Integer.parseInt(hashIndividual.get("client_id")));
         HashMap<String, String> hashTrainer = trainersList.get(Integer.parseInt(hashIndividual.get("trainer_id")));
 
-        for (Map.Entry<String, String> entry : hashClient.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            System.out.println("check key client: " + key);
-            System.out.println("check value client: " + value);
-        }
-        for (Map.Entry<String, String> entry : hashTrainer.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            System.out.println("check key trainer: " + key);
-            System.out.println("check value trainer: " + value);
-        }
-
-
         individualVH.id_individual_work.setText("№ " + hashIndividual.get("id_individual_work") + ": ");
         individualVH.time_start_end.setText("time start: " + hashIndividual.get("time_start") + " , time end: " + hashIndividual.get("time_end"));
+        individualVH.day_working.setText(hashIndividual.get("day_of_week"));
 
         individualVH.client_id.setText("client: " + hashClient.get("first_name") + " " + hashClient.get("last_name") + ", ");
 
@@ -95,6 +91,11 @@ public class IndividualAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             trainersList.add(trainer.get(i));
             notifyItemInserted(trainersList.size() - 1);
         }
+        notifyDataSetChanged();
+    }
+
+    public void updateFromSearch(List<HashMap<String, String>> temp) {
+        individualsList = temp;
         notifyDataSetChanged();
     }
 

@@ -27,6 +27,11 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return new TrainerVH(view);
     }
 
+
+    public List<HashMap<String, String>> getTrainersList() {
+        return trainersList;
+    }
+
     public void clear() {
         trainersList.clear();
     }
@@ -59,6 +64,11 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             trainer_describe = itemView.findViewById(R.id.trainer_describe);
             trainer_price = itemView.findViewById(R.id.trainer_price);
         }
+    }
+
+    public void updateFromSearch(List<HashMap<String, String>> temp) {
+        trainersList = temp;
+        notifyDataSetChanged();
     }
 
     public void updateList(List<HashMap<String, String>> trainers) {

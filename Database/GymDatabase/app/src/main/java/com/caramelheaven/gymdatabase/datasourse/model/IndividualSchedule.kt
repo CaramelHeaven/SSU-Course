@@ -2,21 +2,23 @@ package com.caramelheaven.gymdatabase.datasourse.model
 
 class IndividualSchedule {
 
-    private var client_id: String? = null
-    private var id_individual_work: String? = null
-    private var time_end: String? = null
-    private var time_start: String? = null
-    private var trainer_id: String? = null
+    var client_id: String? = null
+    var id_individual_work: String? = null
+    var time_end: String? = null
+    var time_start: String? = null
+    var trainer_id: String? = null
+    var day_of_week: String? = null
 
     constructor() {}
 
     constructor(client_id: String, id_individual_work: String, time_end: String, time_start: String,
-                trainer_id: String) {
+                trainer_id: String, day_of_week: String) {
         this.client_id = client_id
         this.id_individual_work = id_individual_work
         this.time_end = time_end
         this.time_start = time_start
         this.trainer_id = trainer_id
+        this.day_of_week = day_of_week
     }
 
     override fun equals(other: Any?): Boolean {

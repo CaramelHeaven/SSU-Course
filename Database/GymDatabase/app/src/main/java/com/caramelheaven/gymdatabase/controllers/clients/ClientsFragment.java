@@ -1,6 +1,8 @@
 package com.caramelheaven.gymdatabase.controllers.clients;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
@@ -34,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,12 +58,16 @@ public class ClientsFragment extends Fragment {
     private SwipeRefreshLayout swipeRefresh;
     private Menu menu;
 
+    private static final int REQUEST_WEIGHT = 1;
+    private static final int REQUEST_ANOTHER_ONE = 2;
+
     public static ClientsFragment newInstance() {
         Bundle args = new Bundle();
         ClientsFragment fragment = new ClientsFragment();
         fragment.setArguments(args);
         return fragment;
     }
+
 
     @Nullable
     @Override
@@ -105,7 +113,7 @@ public class ClientsFragment extends Fragment {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
         String login = sharedPreference.getString("login", null);
 
-        if (login.equals("admin")){
+        if (login.equals("admin")) {
             setFABs();
         } else {
             fabAdd.setVisibility(View.GONE);
@@ -117,15 +125,13 @@ public class ClientsFragment extends Fragment {
         adapter.notifyDataSetChanged();
 
         recyclerView.setAdapter(adapter);
+
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         this.menu = menu;
-
         inflater.inflate(R.menu.toolbar_menu, menu);
-        MenuItem search = menu.findItem(R.id.action_search);
-        search.setVisible(true);
     }
 
     @Override
@@ -134,6 +140,11 @@ public class ClientsFragment extends Fragment {
             case R.id.action_search:
                 SearchView searchView = (SearchView) item.getActionView();
                 searchView.setQueryHint("Поиск");
+                //https://stackoverflow.com/a/21549541
+                //text color
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setTextColor(Color.WHITE);
+                //hint
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setHintTextColor(Color.WHITE);
                 searchView.setMaxWidth(Integer.MAX_VALUE);
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
@@ -148,6 +159,8 @@ public class ClientsFragment extends Fragment {
                     }
                 });
                 return true;
+            case R.id.action_logout:
+                Toast.makeText(getContext(), "hahaha!", Toast.LENGTH_SHORT).show();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -156,8 +169,8 @@ public class ClientsFragment extends Fragment {
     private void querySearch(String inputText) {
         inputText = inputText.toLowerCase();
         System.out.println("Зашел в querySearch: " + inputText);
-        List<HashMap<String, String>> updatedListClients = new ArrayList<>();
         List<HashMap<String, String>> hashClients = adapter.getClientsFromAdapter();
+        List<HashMap<String, String>> updatedList = new ArrayList<>();
         if (hashClients.size() == 0) {
             Toast.makeText(getContext(), "Size is 0", Toast.LENGTH_SHORT).show();
         } else {
@@ -165,10 +178,10 @@ public class ClientsFragment extends Fragment {
                 HashMap<String, String> tempHash = hashClients.get(i);
                 if ((tempHash.get("first_name") != null && tempHash.get("first_name").toLowerCase().contains(inputText)) ||
                         (tempHash.get("last_name") != null && tempHash.get("last_name").toLowerCase().contains(inputText))) {
-                    updatedListClients.add(tempHash);
+                    updatedList.add(tempHash);
                 }
             }
-            adapter.updateFromSearch(updatedListClients);
+            adapter.updateFromSearch(updatedList);
         }
     }
 
@@ -187,14 +200,23 @@ public class ClientsFragment extends Fragment {
         firebase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<HashMap<String, String>> listClients = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> listClients = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/ClientDirectory")
                         .getValue();
 
-                List<HashMap<String, String>> listGyms = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> listGyms = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/GymMembership")
                         .getValue();
 
+                listClients.removeAll(Collections.singleton(null));
+
+                for (int i = 0; i < listClients.size(); i++) {
+                    System.out.println("i: = " + i);
+                    for (Map.Entry<String, String> temp : listClients.get(i).entrySet()) {
+                        System.out.println("key: " + temp.getKey());
+                        System.out.println("value: " + temp.getValue());
+                    }
+                }
                 adapter.updateList(listClients, listGyms);
             }
 
@@ -205,12 +227,10 @@ public class ClientsFragment extends Fragment {
     }
 
     private void setFABs() {
-
-
         fabAdd.setOnClickListener(v -> {
             Toast.makeText(getContext(), "clicked", Toast.LENGTH_SHORT).show();
             DialogAddFragment dialog = DialogAddFragment.newInstance();
-            dialog.show(getActivity().getSupportFragmentManager(), null);
+            dialog.show(getActivity().getSupportFragmentManager(), dialog.getClass().getName());
         });
 
         fabUpdate.setOnClickListener(v -> {
@@ -220,7 +240,41 @@ public class ClientsFragment extends Fragment {
 
         fabDelete.setOnClickListener(v -> {
             DialogDeleteFragment dialog = DialogDeleteFragment.newInstance();
-            dialog.show(getActivity().getSupportFragmentManager(), null);
+            dialog.setTargetFragment(this, REQUEST_WEIGHT);
+            dialog.show(getActivity().getSupportFragmentManager(), dialog.getClass().getName());
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_WEIGHT:
+                    int id = data.getIntExtra(DialogDeleteFragment.TAG_WEIGHT_SELECTED, -1);
+                    Toast.makeText(getContext(), "we: " + id, Toast.LENGTH_SHORT).show();
+                    System.out.println("result: " + String.valueOf(id));
+                    ArrayList<HashMap<String, String>> updatedRemovingList = (ArrayList<HashMap<String, String>>) adapter.getClientsFromAdapter();
+
+                    int deletedId = 0;
+                    for (int i = 0; i < updatedRemovingList.size(); i++) {
+                        if (updatedRemovingList.get(i).get("id_client").equals(String.valueOf(id))) {
+                            deletedId = i;
+                        }
+                    }
+                    updatedRemovingList.remove(deletedId);
+                    updatedRemovingList.trimToSize();
+                    adapter.updateAdapterFromDeleted(updatedRemovingList);
+
+                    DatabaseReference firebaseClient = FirebaseDatabase
+                            .getInstance()
+                            .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/ClientDirectory");
+
+                    final DatabaseReference child = firebaseClient.child(String.valueOf(id));
+                    child.removeValue();
+                    break;
+            }
+            //updateUI();
+        }
     }
 }

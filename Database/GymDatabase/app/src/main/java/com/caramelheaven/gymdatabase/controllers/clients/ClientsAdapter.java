@@ -1,56 +1,44 @@
 package com.caramelheaven.gymdatabase.controllers.clients;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
 import com.caramelheaven.gymdatabase.datasourse.model.ClientDirectory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ClientsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private static List<HashMap<String, String>> currentList;
     List<HashMap<String, String>> listClients;
     List<HashMap<String, String>> listGymMemberships;
 
     public ClientsAdapter(List<HashMap<String, String>> listClients, List<HashMap<String, String>> listGymMemberships) {
         this.listClients = listClients;
         this.listGymMemberships = listGymMemberships;
+        currentList = listClients;
     }
 
     public List<HashMap<String, String>> getClientsFromAdapter() {
-        /*List<ClientDirectory> clientsList = new ArrayList<>();
-        //nice realisation ;)
-        List<HashMap<String, String>> searchList = listClients;
-        for (HashMap<String, String> temp : searchList) {
-            String id_client = null, first_name = null, gym_membership_id = null, last_name = null;
-            for (Map.Entry<String, String> entry : temp.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                switch (key) {
-                    case "id_client":
-                        id_client = value;
-                        break;
-                    case "first_name":
-                        first_name = value;
-                        break;
-                    case "gym_membership_id":
-                        gym_membership_id = value;
-                        break;
-                    case "last_name":
-                        last_name = value;
-                }
-            }
-            clientsList.add(new ClientDirectory(first_name, gym_membership_id, id_client, last_name));
-        }*/
         return listClients;
+    }
+
+    public void updateAdapterFromDeleted(List<HashMap<String, String>> updated) {
+        listClients = updated;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -60,13 +48,14 @@ public class ClientsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return new ClientsVH(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ClientsVH clientVH = (ClientsVH) holder;
-        HashMap<String, String> hashClient = listClients.get(position);
-        HashMap<String, String> hashGym = listGymMemberships.get(Integer.parseInt(hashClient.get("gym_membership_id")));
 
-        System.out.println("current id gym: " + hashClient.get("gym_membership_id"));
+        HashMap<String, String> hashClient = listClients.get(position);
+
+        HashMap<String, String> hashGym = listGymMemberships.get(Integer.parseInt(hashClient.get("gym_membership_id")));
 
         clientVH.firstName.setText(hashClient.get("first_name"));
         clientVH.lastName.setText(hashClient.get("last_name"));
@@ -75,11 +64,11 @@ public class ClientsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         clientVH.dayStart.setText("Day of start: " + hashGym.get("day_of_start"));
         clientVH.dayOfEnd.setText("Day of end: " + hashGym.get("day_of_end"));
+
     }
 
     public void clear() {
         listClients.clear();
-        listGymMemberships.clear();
     }
 
     @Override

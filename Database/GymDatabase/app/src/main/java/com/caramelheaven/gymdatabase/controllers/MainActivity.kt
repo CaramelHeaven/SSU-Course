@@ -41,12 +41,12 @@ class MainActivity : BaseActivity() {
         val sharedPreference = getSharedPreferences("GYM", Context.MODE_PRIVATE)
         val login = sharedPreference.getString("login", null)
 
-        if (login.equals("admin") || login.equals("user")) {
+        /*if (login.equals("admin") || login.equals("user")) {
             //nothing
         } else {
             Toast.makeText(baseContext, "This is person is not exists now", Toast.LENGTH_SHORT).show()
             finish()
-        }
+        }*/
 
         val list = ArrayList<String>()
         val listView = findViewById<ListView>(R.id.listView)

@@ -17,7 +17,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="105:"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
@@ -27,7 +26,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_toRightOf="@id/idClient"
-                android:text="Sonia"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
@@ -37,7 +35,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_toRightOf="@id/firstName"
-                android:text="Ahn"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
@@ -48,7 +45,6 @@
                 android:layout_below="@id/idClient"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="gym id: 80"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
@@ -60,7 +56,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="8dp"
                 android:layout_toRightOf="@id/idGym"
-                android:text="2012-22=22"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
@@ -72,7 +67,6 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="8dp"
                 android:layout_toRightOf="@id/dayStart"
-                android:text="2021-12-25"
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 

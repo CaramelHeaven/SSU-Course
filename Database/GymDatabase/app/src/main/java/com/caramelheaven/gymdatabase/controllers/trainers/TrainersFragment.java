@@ -2,6 +2,7 @@ package com.caramelheaven.gymdatabase.controllers.trainers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,10 +14,15 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
@@ -46,6 +52,8 @@ public class TrainersFragment extends Fragment {
     private FloatingActionButton fabDelete;
     private SwipeRefreshLayout swipeRefresh;
 
+    private Menu menu;
+
     public static TrainersFragment newInstance() {
         Bundle args = new Bundle();
         TrainersFragment fragment = new TrainersFragment();
@@ -56,8 +64,8 @@ public class TrainersFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         return inflater.inflate(R.layout.fragment_trainers, container, false);
-
     }
 
     @Override
@@ -97,7 +105,7 @@ public class TrainersFragment extends Fragment {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
         String login = sharedPreference.getString("login", null);
 
-        if (login.equals("admin")){
+        if (login.equals("admin")) {
             setFABs();
         } else {
             fabAdd.setVisibility(View.GONE);
@@ -106,6 +114,64 @@ public class TrainersFragment extends Fragment {
         }
 
         recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
+
+        inflater.inflate(R.menu.toolbar_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                SearchView searchView = (SearchView) item.getActionView();
+                searchView.setQueryHint("Поиск");
+                //https://stackoverflow.com/a/21549541
+                //text color
+                ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setTextColor(Color.WHITE);
+                //hint
+                ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setHintTextColor(Color.WHITE);
+                searchView.setMaxWidth(Integer.MAX_VALUE);
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        querySearch(query);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        return false;
+                    }
+                });
+                return true;
+            case R.id.action_logout:
+                Toast.makeText(getContext(), "hahaha!", Toast.LENGTH_SHORT).show();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void querySearch(String inputText) {
+        inputText = inputText.toLowerCase();
+        System.out.println("Зашел в querySearch: " + inputText);
+        List<HashMap<String, String>> hashClients = adapter.getTrainersList();
+        List<HashMap<String, String>> updatedList = new ArrayList<>();
+        if (hashClients.size() == 0) {
+            Toast.makeText(getContext(), "Size is 0", Toast.LENGTH_SHORT).show();
+        } else {
+            for (int i = 0; i < hashClients.size(); i++) {
+                HashMap<String, String> tempHash = hashClients.get(i);
+                if ((tempHash.get("first_name") != null && tempHash.get("first_name").toLowerCase().contains(inputText)) ||
+                        (tempHash.get("last_name") != null && tempHash.get("last_name").toLowerCase().contains(inputText))) {
+                    updatedList.add(tempHash);
+                }
+            }
+            adapter.updateFromSearch(updatedList);
+        }
     }
 
     private void setTrainersFirebase() {

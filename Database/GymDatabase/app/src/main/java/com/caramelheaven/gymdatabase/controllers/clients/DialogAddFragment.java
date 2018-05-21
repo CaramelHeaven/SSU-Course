@@ -60,7 +60,7 @@ public class DialogAddFragment extends DialogFragment {
     public void onResume() {
         super.onResume();
         Window window = getDialog().getWindow();
-        window.setLayout(1000, 700);
+        window.setLayout(1000, 600);
         window.setGravity(Gravity.CENTER);
     }
 

@@ -2,6 +2,7 @@ package com.caramelheaven.gymdatabase.controllers.group;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,16 +14,18 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
-import com.caramelheaven.gymdatabase.controllers.clients.DialogAddFragment;
-import com.caramelheaven.gymdatabase.controllers.clients.DialogDeleteFragment;
-import com.caramelheaven.gymdatabase.controllers.clients.DialogUpdateFragment;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,6 +33,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +49,8 @@ public class GroupFragment extends Fragment {
     private FloatingActionButton fabDelete;
     private SwipeRefreshLayout swipeRefresh;
 
+    private Menu menu;
+
     public static GroupFragment newInstance() {
         Bundle args = new Bundle();
         GroupFragment fragment = new GroupFragment();
@@ -55,6 +61,7 @@ public class GroupFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         return inflater.inflate(R.layout.fragment_group, container, false);
     }
 
@@ -104,7 +111,7 @@ public class GroupFragment extends Fragment {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
         String login = sharedPreference.getString("login", null);
 
-        if (login.equals("admin")){
+        if (login.equals("admin")) {
             setFABs();
         } else {
             fabAdd.setVisibility(View.GONE);
@@ -115,14 +122,75 @@ public class GroupFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        this.menu = menu;
+        inflater.inflate(R.menu.toolbar_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                SearchView searchView = (SearchView) item.getActionView();
+                searchView.setQueryHint("Поиск");
+                //https://stackoverflow.com/a/21549541
+                //text color
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setTextColor(Color.WHITE);
+                //hint
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setHintTextColor(Color.WHITE);
+                searchView.setMaxWidth(Integer.MAX_VALUE);
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        querySearch(query);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        return false;
+                    }
+                });
+                return true;
+            case R.id.action_logout:
+                Toast.makeText(getContext(), "hahaha!", Toast.LENGTH_SHORT).show();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void querySearch(String inputText) {
+        inputText = inputText.toLowerCase();
+        List<HashMap<String, String>> hashClients = adapter.getGroupList();
+        List<HashMap<String, String>> updatedList = new ArrayList<>();
+        if (hashClients.size() == 0) {
+            Toast.makeText(getContext(), "Size is 0", Toast.LENGTH_SHORT).show();
+        } else {
+            for (int i = 0; i < hashClients.size(); i++) {
+                HashMap<String, String> tempHash = hashClients.get(i);
+                if ((tempHash.get("day_of_week") != null && tempHash.get("day_of_week").toLowerCase().contains(inputText))) {
+                    updatedList.add(tempHash);
+                }
+            }
+            adapter.updateFromSearch(updatedList);
+        }
+    }
+
     private void setGroupFirebase() {
         firebase = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com");
         firebase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<HashMap<String, String>> grouplist = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> grouplist = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/GroupSchedule")
                         .getValue();
+
+                ArrayList<HashMap<String, String>> listClients = (ArrayList<HashMap<String, String>>) dataSnapshot
+                        .child("/ClientDirectory")
+                        .getValue();
+
+                grouplist.removeAll(Collections.singleton(null));
 
                 List<HashMap<String, String>> placeList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/Place")
@@ -165,20 +233,21 @@ public class GroupFragment extends Fragment {
     }
 
     private void setFABs() {
-
-
         fabAdd.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Добавляем групповое занятие", Toast.LENGTH_SHORT).show();
             Toast.makeText(getContext(), "clicked", Toast.LENGTH_SHORT).show();
             DialogAddFragment dialog = DialogAddFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
 
         fabUpdate.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Изменяем групповое занятие", Toast.LENGTH_SHORT).show();
             DialogUpdateFragment dialog = DialogUpdateFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
 
         fabDelete.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Удаляем групповое занятие", Toast.LENGTH_SHORT).show();
             DialogDeleteFragment dialog = DialogDeleteFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });

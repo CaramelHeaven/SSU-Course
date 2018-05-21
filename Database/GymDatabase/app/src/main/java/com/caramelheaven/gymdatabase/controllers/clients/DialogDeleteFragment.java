@@ -1,9 +1,12 @@
 package com.caramelheaven.gymdatabase.controllers.clients;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatEditText;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -12,6 +15,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.caramelheaven.gymdatabase.R;
 import com.google.firebase.database.DataSnapshot;
@@ -23,19 +27,20 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class DialogDeleteFragment extends DialogFragment {
+public class DialogDeleteFragment extends DialogFragment  {
 
     private DatabaseReference firebaseClient;
-    private DatabaseReference firebaseGym;
     private AppCompatEditText inputId;
     private AppCompatEditText inputName;
     private AppCompatEditText inputNameL;
     private Button button;
 
+    public static final String TAG_WEIGHT_SELECTED = "weight";
+
     public static DialogDeleteFragment newInstance() {
         Bundle args = new Bundle();
-
         DialogDeleteFragment fragment = new DialogDeleteFragment();
         fragment.setArguments(args);
         return fragment;
@@ -51,73 +56,21 @@ public class DialogDeleteFragment extends DialogFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         inputId = view.findViewById(R.id.etId);
         inputName = view.findViewById(R.id.etName);
         inputNameL = view.findViewById(R.id.etLastName);
         button = view.findViewById(R.id.buttonOk);
 
         firebaseClient = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/ClientDirectory");
-        firebaseGym = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GymMembership");
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = inputName.getText().toString();
-                String lastName = inputNameL.getText().toString();
-                final String keyClient = inputId.getText().toString();
-                //take our child from array [0...120] and changed his fields
-                final DatabaseReference child = firebaseClient.child(keyClient);
-
-                //we need to get gym_membership_id from our child for delete his gym membership
-                firebaseClient.removeEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        List<HashMap<String, String>> listValues = (ArrayList<HashMap<String, String>>) dataSnapshot
-                                .getValue();
-                        for (HashMap<String, String> temp : listValues){
-                            System.out.println("id client: " + temp.get("id_client"));
-                            if (temp.get("id_client").equals(keyClient)){
-                                String f = temp.get("gym_membership_id");
-                                System.out.println("ffff: " + f);
-                                DatabaseReference childGym = firebaseGym.child(f);
-                                childGym.removeValue();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-              /*  firebaseGym.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        System.out.println("parce: " + Integer.parseInt(gymId[0]));
-                        List<HashMap<String, String>> listValues = (ArrayList<HashMap<String, String>>) dataSnapshot
-                                .getValue();
-
-                        for (HashMap<String, String> temp : listValues){
-                            System.out.println("containes: " + temp.get("id_gym_membership"));
-                            if (gymId[0].equals(temp.get("id_gym_membership"))){
-                                System.out.println("ура, содержит!");
-                                DatabaseReference ref = firebaseGym.child()
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });*/
-
-
-                child.removeValue();
-
-            }
+        button.setOnClickListener(v -> {
+            final String idClient = inputId.getText().toString();
+            int temp = Integer.parseInt(idClient);
+            Intent intent = new Intent();
+            intent.putExtra(TAG_WEIGHT_SELECTED, temp);
+            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, intent);
         });
-
     }
 
     @Override

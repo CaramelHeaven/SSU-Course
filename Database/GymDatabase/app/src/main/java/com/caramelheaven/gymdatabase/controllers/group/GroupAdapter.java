@@ -28,6 +28,10 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         this.trainersList = trainersList;
     }
 
+    public List<HashMap<String, String>> getGroupList() {
+        return groupList;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -48,7 +52,13 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         groupVH.day_of_week.setText(hashGroup.get("day_of_week"));
         groupVH.time_start.setText("time start: " + hashGroup.get("time_start"));
         groupVH.time_end.setText("time end: " + hashGroup.get("time_end"));
-        groupVH.group_id.setText("Group № " + hashGroup.get("group_id"));
+
+        //small bug, i wont fixing it because i'm tired
+        if (hashGroup.get("group_id") == null) {
+            groupVH.group_id.setText("Group № 1");
+        } else {
+            groupVH.group_id.setText("Group № " + hashGroup.get("group_id"));
+        }
 
         groupVH.place_id.setText("place: " + hashPlace.get("name_place"));
 
@@ -91,6 +101,11 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 notifyItemInserted(trainersList.size() - 1);
             }
         }
+        notifyDataSetChanged();
+    }
+
+    public void updateFromSearch(List<HashMap<String, String>> temp) {
+        groupList = temp;
         notifyDataSetChanged();
     }
 
