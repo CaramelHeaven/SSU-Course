@@ -20,6 +20,7 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.trainersList = trainersList;
     }
 
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -36,6 +37,11 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         trainersList.clear();
     }
 
+    public void updateAdapterFromDeleted(List<HashMap<String, String>> updated) {
+        trainersList = updated;
+        notifyDataSetChanged();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
@@ -46,7 +52,7 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 " " + hashTrainer.get("first_name") +
                 " " + hashTrainer.get("last_name"));
 
-        trainerVH.trainer_price.setText("3404 $");
+        trainerVH.trainer_price.setText(hashTrainer.get("salary") + " rub.");
     }
 
     @Override

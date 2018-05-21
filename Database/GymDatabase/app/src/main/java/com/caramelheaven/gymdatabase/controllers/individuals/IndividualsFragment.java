@@ -37,6 +37,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -201,15 +202,17 @@ public class IndividualsFragment extends Fragment {
                         .child("/IndividualSchedule")
                         .getValue();
 
-                List<HashMap<String, String>> clientsList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> clientsList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/ClientDirectory")
                         .getValue();
 
-                List<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/TrainerDirectory")
                         .getValue();
 
                 individualsList.removeAll(Collections.singleton(null));
+                clientsList.removeAll(Collections.singleton(null));
+                trainerList.removeAll(Collections.singleton(null));
 
                 for (HashMap<String, String> place : individualsList) {
                     for (Map.Entry<String, String> entry : place.entrySet()) {
@@ -268,11 +271,11 @@ public class IndividualsFragment extends Fragment {
                     updatedRemovingList.trimToSize();
                     adapter.updateAdapterFromDeleted(updatedRemovingList);
 
-                    DatabaseReference firebaseClient = FirebaseDatabase
+                    DatabaseReference firebaseTemp = FirebaseDatabase
                             .getInstance()
                             .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/IndividualSchedule");
 
-                    final DatabaseReference child = firebaseClient.child(String.valueOf(deletedId));
+                    final DatabaseReference child = firebaseTemp.child(String.valueOf(deletedId));
                     child.removeValue();
                     break;
             }

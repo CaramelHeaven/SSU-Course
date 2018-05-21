@@ -1,6 +1,8 @@
 package com.caramelheaven.gymdatabase.controllers.trainers;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -37,6 +39,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,20 +182,11 @@ public class TrainersFragment extends Fragment {
         firebase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                List<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/TrainerDirectory")
                         .getValue();
 
-                for (HashMap<String, String> place : trainerList) {
-                    for (Map.Entry<String, String> entry : place.entrySet()) {
-                        String key = entry.getKey();
-                        String value = entry.getValue();
-                        System.out.println("check key: " + key);
-                        System.out.println("check value: " + value);
-                    }
-                }
-
+                trainerList.removeAll(Collections.singleton(null));
                 adapter.updateList(trainerList);
             }
 
@@ -213,23 +207,55 @@ public class TrainersFragment extends Fragment {
         }
     }
 
+    private static final int REQUEST_WEIGHT = 1;
+
     private void setFABs() {
-
-
         fabAdd.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "clicked", Toast.LENGTH_SHORT).show();
-            DialogAddFragment dialog = DialogAddFragment.newInstance();
+            TAddFragment dialog = TAddFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
 
         fabUpdate.setOnClickListener(v -> {
-            DialogUpdateFragment dialog = DialogUpdateFragment.newInstance();
+            TUpdateFragment dialog = TUpdateFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
 
         fabDelete.setOnClickListener(v -> {
-            DialogDeleteFragment dialog = DialogDeleteFragment.newInstance();
+            TDeleteFragment dialog = TDeleteFragment.newInstance();
+            dialog.setTargetFragment(this, REQUEST_WEIGHT);
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_WEIGHT:
+                    int id = data.getIntExtra(DialogDeleteFragment.TAG_WEIGHT_SELECTED, -1);
+                    ArrayList<HashMap<String, String>> updatedRemovingList = (ArrayList<HashMap<String, String>>) adapter.getTrainersList();
+
+                    int deletedId = 0;
+                    for (int i = 0; i < updatedRemovingList.size(); i++) {
+                        if (updatedRemovingList.get(i).get("id_trainer").equals(String.valueOf(id))) {
+                            deletedId = Integer.parseInt(updatedRemovingList.get(i).get("id_trainer"));
+                            Toast.makeText(getContext(), "delete: " + deletedId + " i: " + i, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    updatedRemovingList.remove(deletedId);
+                    updatedRemovingList.trimToSize();
+                    adapter.updateAdapterFromDeleted(updatedRemovingList);
+
+                    DatabaseReference firebaseTemp = FirebaseDatabase
+                            .getInstance()
+                            .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/TrainerDirectory");
+
+                    final DatabaseReference child = firebaseTemp.child(String.valueOf(deletedId));
+                    child.removeValue();
+                    break;
+            }
+            //updateUI();
+        }
     }
 }

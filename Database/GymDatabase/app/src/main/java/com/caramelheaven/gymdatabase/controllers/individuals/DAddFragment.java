@@ -92,24 +92,21 @@ public class DAddFragment extends DialogFragment {
 
         firebaseAdd = FirebaseDatabase.getInstance().getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/IndividualSchedule");
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String client = inputClient.getText().toString();
-                String timestar = inputTimeStart.getText().toString();
-                String timeEnd = inputTimeEnd.getText().toString();
-                String trainer = inputTrainer.getText().toString();
-                String day = inputDayOfWeek.getText().toString();
+        button.setOnClickListener(v -> {
+            String client = inputClient.getText().toString();
+            String timestar = inputTimeStart.getText().toString();
+            String timeEnd = inputTimeEnd.getText().toString();
+            String trainer = inputTrainer.getText().toString();
+            String day = inputDayOfWeek.getText().toString();
 
-                if ((client.equals("") || (timestar.equals("") || (trainer.equals("") || (timeEnd.equals("") || (day.equals(""))))))) {
-                    Toast.makeText(getContext(), "Не все поля заполнены!", Toast.LENGTH_SHORT).show();
-                } else {
-                    IndividualSchedule individualSchedule = new IndividualSchedule(client, String.valueOf(COUNT), timeEnd, timestar, trainer, day);
+            if ((client.equals("") || (timestar.equals("") || (trainer.equals("") || (timeEnd.equals("") || (day.equals(""))))))) {
+                Toast.makeText(getContext(), "Не все поля заполнены!", Toast.LENGTH_SHORT).show();
+            } else {
+                IndividualSchedule individualSchedule = new IndividualSchedule(client, String.valueOf(COUNT), timeEnd, timestar, trainer, day);
 
-                    DatabaseReference groupRef = firebaseAdd.child(String.valueOf(COUNT));
-                    groupRef.setValue(individualSchedule);
-                    Toast.makeText(getContext(), "Индивидуальное занятие добавлено", Toast.LENGTH_SHORT).show();
-                }
+                DatabaseReference groupRef = firebaseAdd.child(String.valueOf(COUNT));
+                groupRef.setValue(individualSchedule);
+                Toast.makeText(getContext(), "Индивидуальное занятие добавлено", Toast.LENGTH_SHORT).show();
             }
         });
     }

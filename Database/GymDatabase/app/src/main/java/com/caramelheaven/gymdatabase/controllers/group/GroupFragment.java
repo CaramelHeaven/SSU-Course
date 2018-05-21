@@ -190,19 +190,23 @@ public class GroupFragment extends Fragment {
                         .child("/ClientDirectory")
                         .getValue();
 
-                grouplist.removeAll(Collections.singleton(null));
-
-                List<HashMap<String, String>> placeList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> placeList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/Place")
                         .getValue();
 
-                List<HashMap<String, String>> kindofSportList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> kindofSportList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/KindOfSport")
                         .getValue();
 
-                List<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
+                ArrayList<HashMap<String, String>> trainerList = (ArrayList<HashMap<String, String>>) dataSnapshot
                         .child("/TrainerDirectory")
                         .getValue();
+
+                grouplist.removeAll(Collections.singleton(null));
+                listClients.removeAll(Collections.singleton(null));
+                placeList.removeAll(Collections.singleton(null));
+                kindofSportList.removeAll(Collections.singleton(null));
+                trainerList.removeAll(Collections.singleton(null));
 
                 for (HashMap<String, String> place : trainerList) {
                     for (Map.Entry<String, String> entry : place.entrySet()) {
@@ -235,7 +239,6 @@ public class GroupFragment extends Fragment {
     private void setFABs() {
         fabAdd.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Добавляем групповое занятие", Toast.LENGTH_SHORT).show();
-            Toast.makeText(getContext(), "clicked", Toast.LENGTH_SHORT).show();
             DialogAddFragment dialog = DialogAddFragment.newInstance();
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });

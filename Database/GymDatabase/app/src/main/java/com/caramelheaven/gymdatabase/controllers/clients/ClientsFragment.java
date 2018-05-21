@@ -209,6 +209,7 @@ public class ClientsFragment extends Fragment {
                         .getValue();
 
                 listClients.removeAll(Collections.singleton(null));
+                listGyms.removeAll(Collections.singleton(null));
 
                 for (int i = 0; i < listClients.size(); i++) {
                     System.out.println("i: = " + i);
