@@ -5,7 +5,7 @@
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="70dp">
+        android:layout_height="wrap_content">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -15,7 +15,6 @@
                 android:id="@+id/name_group"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:text="Group № 2"
@@ -26,7 +25,6 @@
                 android:id="@+id/get_people"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_toEndOf="@id/name_group"
@@ -34,14 +32,24 @@
                 android:textColor="@color/colorDark"
                 android:textSize="@dimen/size16" />
 
+            <TextView
+                android:id="@+id/client_start_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/get_people"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:text="time start: "
+                android:textColor="@color/colorDark" />
+
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_alignParentBottom="true"
+                android:layout_below="@id/client_start_end"
                 android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
                 android:background="#c2c2c2" />
 
         </RelativeLayout>

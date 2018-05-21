@@ -34,8 +34,11 @@ public class GroupInformationActivity extends AppCompatActivity {
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext(), LinearLayoutManager.VERTICAL, false));
+
         List<HashMap<String, String>> example = new ArrayList<>();
-        adapter = new InformationAdapter(example);
+        List<HashMap<String, String>> example2 = new ArrayList<>();
+        List<HashMap<String, String>> example3 = new ArrayList<>();
+        adapter = new InformationAdapter(example, example2, example3);
 
         recyclerView.setAdapter(adapter);
 
@@ -50,6 +53,8 @@ public class GroupInformationActivity extends AppCompatActivity {
                 .getInstance()
                 .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GroupWork");
 
+
+
         firebase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -58,6 +63,8 @@ public class GroupInformationActivity extends AppCompatActivity {
 
                 grouplist.removeAll(Collections.singleton(null));
 
+                //это выполняется один раз, нет смысла беспокоится о большой занимаемой памяти
+                //которая и так уже большая.
                 for (HashMap<String, String> temp : grouplist) {
                     if (temp.get("id_group_schedule").equals(currentGroupId)) {
 
@@ -70,16 +77,58 @@ public class GroupInformationActivity extends AppCompatActivity {
                                         .getValue();
 
                                 groupWorkList.removeAll(Collections.singleton(null));
+                                final List<HashMap<String, String>> futureGroupWork = new ArrayList<>();
+                                final List<HashMap<String, String>> futureClient = new ArrayList<>();
+                                List<String> idClients = new ArrayList<>();
 
-                                List<HashMap<String, String>> futureAdapterList = new ArrayList<>();
-
+                                //мы получили текущий айди группы, из GroupSchedule и теперь
+                                //в GroupWork пробегаемся по всем и чекаем, есть ли у них этот
+                                // айди, если да - то заносим в список
                                 for (HashMap<String, String> temp2 : groupWorkList) {
                                     if (temp2.get("id_group").equals(currentIdWork)) {
-                                        futureAdapterList.add(temp2);
+                                        futureGroupWork.add(temp2);
+                                        idClients.add("get_people");
                                     }
                                 }
+                                //тупо берем весь список юзеров и кидаем в адаптер, там отберем нормальных
+                                DatabaseReference firebaseClient = FirebaseDatabase
+                                        .getInstance()
+                                        .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/ClientDirectory");
+                                //тупо еще раз берем и нужно чекнуть эту штуку, т.к. в ней занесены
+                                //старт занятий года и конец года занятий.
+                                DatabaseReference firebaseClientTrace = FirebaseDatabase
+                                        .getInstance()
+                                        .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/ClientTrace");
 
-                                adapter.updateList(futureAdapterList);
+                                firebaseClient.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        final ArrayList<HashMap<String, String>> temp = (ArrayList<HashMap<String, String>>) dataSnapshot
+                                                .getValue();
+                                        temp.removeAll(Collections.singleton(null));
+                                        firebaseClientTrace.addValueEventListener(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                final ArrayList<HashMap<String, String>> tempClientTrace = (ArrayList<HashMap<String, String>>) dataSnapshot
+                                                        .getValue();
+
+                                                tempClientTrace.removeAll(Collections.singleton(null));
+
+                                                //and updated it :)
+                                                adapter.updateList(futureGroupWork, temp, tempClientTrace);
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                    }
+                                });
                             }
 
                             @Override
