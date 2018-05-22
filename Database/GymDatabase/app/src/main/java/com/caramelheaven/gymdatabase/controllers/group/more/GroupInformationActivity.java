@@ -54,7 +54,6 @@ public class GroupInformationActivity extends AppCompatActivity {
                 .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GroupWork");
 
 
-
         firebase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -138,6 +137,7 @@ public class GroupInformationActivity extends AppCompatActivity {
 
                         Toast.makeText(GroupInformationActivity.this, "cur: " + currentIdWork, Toast.LENGTH_SHORT).show();
                     }
+                    break;
                 }
             }
 

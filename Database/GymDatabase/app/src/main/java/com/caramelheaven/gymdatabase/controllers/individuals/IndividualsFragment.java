@@ -159,6 +159,7 @@ public class IndividualsFragment extends Fragment {
                 return true;
             case R.id.action_logout:
                 Toast.makeText(getContext(), "hahaha!", Toast.LENGTH_SHORT).show();
+                getActivity().finish();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -178,6 +179,8 @@ public class IndividualsFragment extends Fragment {
                     updatedList.add(tempHash);
                 }
             }
+
+            setIndividualsFirebase();
             adapter.updateFromSearch(updatedList);
         }
     }

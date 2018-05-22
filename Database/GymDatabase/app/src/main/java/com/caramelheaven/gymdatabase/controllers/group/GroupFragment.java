@@ -1,5 +1,6 @@
 package com.caramelheaven.gymdatabase.controllers.group;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -127,10 +128,34 @@ public class GroupFragment extends Fragment {
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position, View view) {
-                int temp = position + 1;
+                int temp = position;
                 Intent intent = new Intent(getContext(), GroupInformationActivity.class);
-                intent.putExtra("KEY", String.valueOf(temp));
-                startActivity(intent);
+
+                DatabaseReference firebase = FirebaseDatabase
+                        .getInstance()
+                        .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GroupSchedule");
+
+                firebase.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        ArrayList<HashMap<String, String>> grouplist = (ArrayList<HashMap<String, String>>) dataSnapshot
+                                .getValue();
+
+                        grouplist.removeAll(Collections.singleton(null));
+
+                        for (int i = 0; i < grouplist.size(); i++) {
+                            if (temp == i) {
+                                intent.putExtra("KEY", String.valueOf(temp));
+                                startActivity(intent);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
         });
 
@@ -241,6 +266,8 @@ public class GroupFragment extends Fragment {
         });
     }
 
+    private static final int REQUEST_WEIGHT = 1;
+
     private void setActionBar(Toolbar toolbar) {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -267,7 +294,40 @@ public class GroupFragment extends Fragment {
         fabDelete.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Удаляем групповое занятие", Toast.LENGTH_SHORT).show();
             DialogDeleteFragment dialog = DialogDeleteFragment.newInstance();
+            dialog.setTargetFragment(this, REQUEST_WEIGHT);
             dialog.show(getActivity().getSupportFragmentManager(), null);
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_WEIGHT:
+                    int id = data.getIntExtra(com.caramelheaven.gymdatabase.controllers.clients.DialogDeleteFragment.TAG_WEIGHT_SELECTED, -1);
+                    ArrayList<HashMap<String, String>> updatedRemovingList = (ArrayList<HashMap<String, String>>) adapter.getGroupList();
+
+                    int deletedId = 0;
+                    for (int i = 0; i < updatedRemovingList.size(); i++) {
+                        if (updatedRemovingList.get(i).get("id_group_schedule").equals(String.valueOf(id))) {
+                            deletedId = i;
+                            Toast.makeText(getContext(), "delete: " + deletedId + " i: " + i, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    updatedRemovingList.remove(deletedId);
+                    updatedRemovingList.trimToSize();
+                    adapter.updateAdapterFromDeleted(updatedRemovingList);
+
+                    DatabaseReference firebaseTemp = FirebaseDatabase
+                            .getInstance()
+                            .getReferenceFromUrl("https://gymdatabase-63161.firebaseio.com/GroupSchedule");
+
+                    final DatabaseReference child = firebaseTemp.child(String.valueOf(deletedId));
+                    child.removeValue();
+                    break;
+            }
+            //updateUI();
+        }
     }
 }

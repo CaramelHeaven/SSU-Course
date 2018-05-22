@@ -116,6 +116,11 @@ public class GroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    public void updateAdapterFromDeleted(List<HashMap<String, String>> updated) {
+        groupList = updated;
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return groupList.size();

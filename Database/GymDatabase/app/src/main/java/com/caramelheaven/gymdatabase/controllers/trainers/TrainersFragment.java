@@ -81,7 +81,7 @@ public class TrainersFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
 
         setActionBar(toolbar);
-
+        checkShared();
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
 
@@ -90,19 +90,16 @@ public class TrainersFragment extends Fragment {
         adapter = new TrainersAdapter(listTrainers);
 
         swipeRefresh.setColorSchemeResources(R.color.fabInsert);
-        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                adapter.clear();
-                setTrainersFirebase();
-                adapter.notifyDataSetChanged();
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeRefresh.setRefreshing(false);
-                    }
-                }, 2500);
-            }
+        swipeRefresh.setOnRefreshListener(() -> {
+            adapter.clear();
+            setTrainersFirebase();
+            adapter.notifyDataSetChanged();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    swipeRefresh.setRefreshing(false);
+                }
+            }, 2500);
         });
 
         SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
@@ -153,8 +150,21 @@ public class TrainersFragment extends Fragment {
                 return true;
             case R.id.action_logout:
                 Toast.makeText(getContext(), "hahaha!", Toast.LENGTH_SHORT).show();
+                getActivity().finish();
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public static int fiss = 0;
+
+    public void checkShared(){
+        SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
+        String login = sharedPreference.getString("login", null);
+        if (login.equals("admin")) {
+            fiss = 22;
+        } else if (login.equals("user")){
+            fiss = 24;
         }
     }
 
@@ -173,6 +183,8 @@ public class TrainersFragment extends Fragment {
                     updatedList.add(tempHash);
                 }
             }
+
+            setTrainersFirebase();
             adapter.updateFromSearch(updatedList);
         }
     }

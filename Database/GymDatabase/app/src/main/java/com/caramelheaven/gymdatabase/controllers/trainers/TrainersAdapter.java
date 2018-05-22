@@ -1,5 +1,6 @@
 package com.caramelheaven.gymdatabase.controllers.trainers;
 
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -52,7 +53,12 @@ public class TrainersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 " " + hashTrainer.get("first_name") +
                 " " + hashTrainer.get("last_name"));
 
-        trainerVH.trainer_price.setText(hashTrainer.get("salary") + " rub.");
+        if (TrainersFragment.fiss == 22){
+            trainerVH.trainer_price.setText(hashTrainer.get("salary") + " rub.");
+        } else {
+            trainerVH.trainer_price.setVisibility(View.GONE);
+        }
+
     }
 
     @Override
