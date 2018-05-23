@@ -53,6 +53,8 @@ public class TrainersFragment extends Fragment {
     private FloatingActionButton fabAdd;
     private FloatingActionButton fabUpdate;
     private FloatingActionButton fabDelete;
+    private FloatingActionButton fabMoney;
+
     private SwipeRefreshLayout swipeRefresh;
 
     private Menu menu;
@@ -79,6 +81,7 @@ public class TrainersFragment extends Fragment {
         fabDelete = view.findViewById(R.id.fabDelete);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
         recyclerView = view.findViewById(R.id.recyclerView);
+        fabMoney = view.findViewById(R.id.fabMoney);
 
         setActionBar(toolbar);
         checkShared();
@@ -111,9 +114,11 @@ public class TrainersFragment extends Fragment {
             fabAdd.setVisibility(View.GONE);
             fabDelete.setVisibility(View.GONE);
             fabUpdate.setVisibility(View.GONE);
+            fabMoney.setVisibility(View.GONE);
         }
 
         recyclerView.setAdapter(adapter);
+
     }
 
     @Override
@@ -131,9 +136,9 @@ public class TrainersFragment extends Fragment {
                 searchView.setQueryHint("Поиск");
                 //https://stackoverflow.com/a/21549541
                 //text color
-                ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setTextColor(Color.WHITE);
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setTextColor(Color.WHITE);
                 //hint
-                ((EditText)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setHintTextColor(Color.WHITE);
+                ((EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text)).setHintTextColor(Color.WHITE);
                 searchView.setMaxWidth(Integer.MAX_VALUE);
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
@@ -158,12 +163,12 @@ public class TrainersFragment extends Fragment {
 
     public static int fiss = 0;
 
-    public void checkShared(){
+    public void checkShared() {
         SharedPreferences sharedPreference = getActivity().getSharedPreferences("GYM", Context.MODE_PRIVATE);
         String login = sharedPreference.getString("login", null);
         if (login.equals("admin")) {
             fiss = 22;
-        } else if (login.equals("user")){
+        } else if (login.equals("user")) {
             fiss = 24;
         }
     }
@@ -236,6 +241,14 @@ public class TrainersFragment extends Fragment {
             TDeleteFragment dialog = TDeleteFragment.newInstance();
             dialog.setTargetFragment(this, REQUEST_WEIGHT);
             dialog.show(getActivity().getSupportFragmentManager(), null);
+        });
+
+        fabMoney.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TrainerMoney dialog = TrainerMoney.newInstance();
+                dialog.show(getActivity().getSupportFragmentManager(), null);
+            }
         });
     }
 
