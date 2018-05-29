@@ -20,8 +20,6 @@ public class NewLife {
                 man = new Man(0, 0, 0);
             } else {
                 man = new Man(Math.random(), 0, 0);
-                MIN = MIN + 0.05;
-                MAX = MAX + 0.1;
             }
             if (queue.size() < 3) {
                 queue.add(man);
