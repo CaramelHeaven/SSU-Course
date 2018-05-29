@@ -36,15 +36,19 @@ public class Task10 {
                     for (int w = 0; w < queue.size() - 1; w++) {
                         if (queue.get(w) instanceof Man) {
                             if (queue.get(queue.size() - 1) instanceof Man) {
-                                ((Man) queue.get(w)).setStart(((Man) queue.get(queue.size() - 1)).getStart() + ((Man) queue.get(w)).getStart());
+                                ((Man) queue.get(w)).setStart(((Man) queue.get(queue.size() - 1)).getStart() 
+                                                              + ((Man) queue.get(w)).getStart());
                             } else if (queue.get(queue.size() - 1) instanceof Woman) {
-                                ((Man) queue.get(w)).setStart(((Woman) queue.get(queue.size() - 1)).getStart() + ((Man) queue.get(w)).getStart());
+                                ((Man) queue.get(w)).setStart(((Woman) queue.get(queue.size() - 1)).getStart() 
+                                                              + ((Man) queue.get(w)).getStart());
                             }
                         } else if (queue.get(w) instanceof Woman) {
                             if (queue.get(queue.size() - 1) instanceof Man) {
-                                ((Woman) queue.get(w)).setStart(((Man) queue.get(queue.size() - 1)).getStart() + ((Woman) queue.get(w)).getStart());
+                                ((Woman) queue.get(w)).setStart(((Man) queue.get(queue.size() - 1)).getStart() 
+                                                                + ((Woman) queue.get(w)).getStart());
                             } else if (queue.get(queue.size() - 1) instanceof Woman) {
-                                ((Woman) queue.get(w)).setStart(((Woman) queue.get(queue.size() - 1)).getStart() + ((Woman) queue.get(w)).getStart());
+                                ((Woman) queue.get(w)).setStart(((Woman) queue.get(queue.size() - 1)).getStart() 
+                                                                + ((Woman) queue.get(w)).getStart());
                             }
                         }
                     }
@@ -108,7 +112,8 @@ public class Task10 {
 
         System.out.println("Мат. ожидание длительности пребывания класса Man в СМО: " + uMan);
         System.out.println("Мат. ожидание длительности пребывания класса Woman в СМО: " + uWoman);
-        System.out.println("Вероятность отказа в обслуживании класса Man: " + (double) probabilityFail / (double) QTY * (double) 100 + " %");
+        System.out.println("Вероятность отказа в обслуживании класса Man: " + (double) probabilityFail / (double) QTY 
+                           * (double) 100 + " %");
     }
 
     static class Man extends Human {
