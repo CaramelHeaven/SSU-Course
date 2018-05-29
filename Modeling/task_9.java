@@ -1,73 +1,123 @@
-import java.time.Period;
 import java.util.ArrayList;
-import java.util.List;
 
-public class Task9 {
+public class NewLife {
+    private static final int QTY = 1000;
+    private static int probabilityFail = 0;
 
-    private static List<Person> firstQueue = new ArrayList<>();
-    private static List<Person> secondQueue = new ArrayList<>();
+    private static Man[] applianceM1 = new Man[1];
+    private static Man[] applianceM2 = new Man[1];
+    private static ArrayList<Man> queue = new ArrayList<>();
+
+    private static ArrayList<Man> totalsAM1 = new ArrayList<>();
+    private static ArrayList<Man> totalsAM2 = new ArrayList<>();
 
     public static void main(String[] args) {
-
-        double currentTime = 0;
-
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < QTY; i++) {
+            Man man;
             if (i == 0) {
-                double timeWork = Math.random();
-                firstQueue.add(new Person(currentTime, timeWork, currentTime + timeWork));
-                currentTime = currentTime + timeWork;
-            }
-
-            double choose = Math.random();
-
-            //choose where we put our person in queue,,, secondQueue - > 0.5
-            //где меньше, туда и пойдет
-            if (choose > 0.5) {
-                if ((secondQueue.size() < 3) && i > 0) {
-                    double timeWorking = Math.random();
-                    secondQueue.add(new Person(currentTime, timeWorking, currentTime + timeWorking));
-                    currentTime = currentTime + timeWorking;
-                }
+                man = new Man(0, 0, 0);
+            } else if (i == 1) {
+                man = new Man(0, 0, 0);
             } else {
-                if ((firstQueue.size() < 3) && i > 0) {
-                    double timeWorking = Math.random();
-                    firstQueue.add(new Person(currentTime, timeWorking, currentTime + timeWorking));
-                    currentTime = currentTime + timeWorking;
+                man = new Man(Math.random(), 0, 0);
+                MIN = MIN + 0.05;
+                MAX = MAX + 0.1;
+            }
+            if (queue.size() < 3) {
+                queue.add(man);
+            } else {
+                probabilityFail++;
+            }
+            if ((applianceM1[0] == null) && (applianceM2[0] == null)) {
+                if (Math.random() > 0.5) {
+                    man.setLive(Math.random());
+                    man.setEnd(man.getStart() + man.getLive());
+                    applianceM1[0] = man;
+                    queue.remove(man);
+                } else {
+                    man.setLive(Math.random());
+                    man.setEnd(man.getStart() + man.getLive());
+                    applianceM2[0] = man;
+                    queue.remove(man);
+                }
+            } else if (applianceM1[0] == null) {
+                applianceM1[0] = man;
+                man.setLive(Math.random());
+                man.setEnd(man.getStart() + man.getLive());
+                queue.remove(man);
+            } else if (applianceM2[0] == null) {
+                man.setLive(Math.random());
+                man.setEnd(man.getStart() + man.getLive());
+                applianceM2[0] = man;
+                queue.remove(man);
+            }
+            if (i > 1) {
+                if (queue.size() > 1) {
+                    //увеличиваем время ожидание первого челика, если он в третьей волне не попал на прибор
+                    // и оказался ждущим.
+                    queue.get(0).setStart(queue.get(0).getStart() + queue.get(1).getStart());
+                    Man firstMan = queue.get(0);
+                    if (firstMan.getStart() > applianceM1[0].getEnd()) {
+                        totalsAM1.add(applianceM1[0]);
+                        firstMan.setLive(Math.random());
+                        firstMan.setEnd(firstMan.getStart() + firstMan.getLive());
+                        applianceM1[0] = null;
+                        applianceM1[0] = firstMan;
+                        queue.set(0, queue.get(1));
+                        queue.remove(1);
+                    } else if (firstMan.getStart() > applianceM2[0].getEnd()) {
+                        totalsAM2.add(applianceM2[0]);
+                        firstMan.setLive(Math.random());
+                        firstMan.setEnd(firstMan.getStart() + firstMan.getLive());
+                        applianceM2[0] = null;
+                        applianceM2[0] = firstMan;
+                        queue.set(0, queue.get(1));
+                        queue.remove(1);
+                    }
+                } else {
+                    if (man.getStart() > applianceM1[0].getEnd()) {
+                        totalsAM1.add(applianceM1[0]);
+                        man.setLive(Math.random());
+                        man.setEnd(man.getStart() + man.getLive());
+                        applianceM1[0] = null;
+                        applianceM1[0] = man;
+                        queue.remove(0);
+                    } else if (man.getStart() > applianceM2[0].getEnd()) {
+                        totalsAM2.add(applianceM2[0]);
+                        man.setLive(Math.random());
+                        man.setEnd(man.getStart() + man.getLive());
+                        applianceM2[0] = null;
+                        applianceM2[0] = man;
+                        queue.remove(0);
+                    } else {
+                        Man am1 = applianceM1[0];
+                        Man am2 = applianceM2[0];
+                        applianceM1[0].setEnd(am1.getEnd() - man.getStart());
+                        applianceM2[0].setEnd(am2.getEnd() - man.getStart());
+                    }
                 }
             }
         }
-
-        System.out.println("first: " + firstQueue);
-        System.out.println("second: " + secondQueue);
-
-    }
-
-    static class Person {
-        private double current;
-        private double timeWorking;
-        private double endTime;
-
-        @Override
-        public String toString() {
-            return "current: " + getCurrent() + " startTime: " + getTimeWorking() + " endTime: " + getEndTime();
+        //Оценка мат ожидания длительности пребывания требований во времени в системе обслуживания
+        double sumU = 0;
+        for (int i = 0; i < totalsAM1.size(); i++) {
+            sumU = sumU + totalsAM1.get(i).getEnd() - totalsAM1.get(i).getStart();
         }
+        double u = (double) 1 / (double) totalsAM1.size() * sumU;
 
-        public Person(double current, double timeWorking, double endTime) {
-            this.current = current;
-            this.timeWorking = timeWorking;
-            this.endTime = endTime;
+        sumU = 0;
+        for (int i = 0; i < totalsAM2.size(); i++) {
+            sumU = sumU + totalsAM2.get(i).getEnd() - totalsAM2.get(i).getStart();
         }
+        double u1 = (double) 1 / (double) totalsAM2.size() * sumU;
 
-        public double getCurrent() {
-            return current;
-        }
+        System.out.println(totalsAM1);
+        System.out.println(totalsAM2);
+        System.out.println("size totalsAM1: " + totalsAM1.size());
+        System.out.println("size totalsAM2: " + totalsAM2.size());
 
-        public double getEndTime() {
-            return endTime;
-        }
-
-        public double getTimeWorking() {
-            return timeWorking;
-        }
+        System.out.println("Мат. ожидание длительности пребывания требований во времени в системе обслуживания 1 прибора: " + u);
+        System.out.println("Мат. ожидание длительности пребывания требований во времени в системе обслуживания 2 прибора: " + u1);
+        System.out.println("Вероятность отказа требованию в обслуживании: " + (double) probabilityFail / (double) QTY);
     }
 }
