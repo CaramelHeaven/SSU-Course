@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class NewLife {
+public class Task9 {
     private static final int QTY = 1000;
     private static int probabilityFail = 0;
 
@@ -12,6 +12,8 @@ public class NewLife {
     private static ArrayList<Man> totalsAM2 = new ArrayList<>();
 
     public static void main(String[] args) {
+        double lyambda = 0.3;
+        double mu = 0.5;
         for (int i = 0; i < QTY; i++) {
             Man man;
             if (i == 0) {
@@ -19,7 +21,7 @@ public class NewLife {
             } else if (i == 1) {
                 man = new Man(0, 0, 0);
             } else {
-                man = new Man(Math.random(), 0, 0);
+                man = new Man(-1 / lyambda * Math.log(Math.random()), 0, 0);
             }
             if (queue.size() < 3) {
                 queue.add(man);
@@ -28,31 +30,29 @@ public class NewLife {
             }
             if ((applianceM1[0] == null) && (applianceM2[0] == null)) {
                 if (Math.random() > 0.5) {
-                    man.setLive(Math.random());
+                    man.setLive(-1 / mu * Math.log(Math.random()));
                     man.setEnd(man.getStart() + man.getLive());
                     applianceM1[0] = man;
                     queue.remove(man);
                 } else {
-                    man.setLive(Math.random());
+                    man.setLive(-1 / mu * Math.log(Math.random()));
                     man.setEnd(man.getStart() + man.getLive());
                     applianceM2[0] = man;
                     queue.remove(man);
                 }
             } else if (applianceM1[0] == null) {
                 applianceM1[0] = man;
-                man.setLive(Math.random());
+                man.setLive(-1 / mu * Math.log(Math.random()));
                 man.setEnd(man.getStart() + man.getLive());
                 queue.remove(man);
             } else if (applianceM2[0] == null) {
-                man.setLive(Math.random());
+                man.setLive(-1 / mu * Math.log(Math.random()));
                 man.setEnd(man.getStart() + man.getLive());
                 applianceM2[0] = man;
                 queue.remove(man);
             }
             if (i > 1) {
                 if (queue.size() > 1) {
-                    //увеличиваем время ожидание первого челика, если он в третьей волне не попал на прибор
-                    // и оказался ждущим.
                     queue.get(0).setStart(queue.get(0).getStart() + queue.get(1).getStart());
                     Man firstMan = queue.get(0);
                     if (firstMan.getStart() > applianceM1[0].getEnd()) {
@@ -109,13 +109,17 @@ public class NewLife {
         }
         double u1 = (double) 1 / (double) totalsAM2.size() * sumU;
 
-        System.out.println(totalsAM1);
-        System.out.println(totalsAM2);
-        System.out.println("size totalsAM1: " + totalsAM1.size());
-        System.out.println("size totalsAM2: " + totalsAM2.size());
+        for (int i = 0; i < totalsAM1.size(); i++) {
+            System.out.println(totalsAM1.get(i));
+        }
+
+
+        for (int i = 0; i < totalsAM2.size(); i++) {
+            System.out.println(totalsAM2.get(i));
+        }
 
         System.out.println("Мат. ожидание длительности пребывания требований во времени в системе обслуживания 1 прибора: " + u);
         System.out.println("Мат. ожидание длительности пребывания требований во времени в системе обслуживания 2 прибора: " + u1);
-        System.out.println("Вероятность отказа требованию в обслуживании: " + (double) probabilityFail / (double) QTY);
+        System.out.println("Вероятность отказа требованию в обслуживании: " + (double) probabilityFail / (double) 100 + " %");
     }
 }
