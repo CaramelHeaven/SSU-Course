@@ -8,13 +8,37 @@
 
 import Foundation
 
-print("Hello, World!")
-
 func getContentDocuments(path: String) -> [String]? {
     guard let paths = try? FileManager.default.contentsOfDirectory(atPath: path)
         else { return nil }
     return paths.map { aContent in (path as NSString).appendingPathComponent(aContent)
     }
+}
+
+func getMyFolder() -> String {
+    var mas: [String]? = nil
+    if let documentsPathString = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
+        mas = getContentDocuments(path: documentsPathString)
+    }
+    return mas![5]
+}
+
+func getBinary(text: String?) -> String {
+    let binaryData: Data? = text!.data(using: .utf8, allowLossyConversion: false)
+    let binaryString = binaryData!.reduce("") { (acc, byte) -> String in
+        acc + String(byte, radix: 2)
+    }
+    return binaryString
+}
+
+func getRandom_16_bytes(file: String) -> String {
+    let absolutePath = getMyFolder() + "/" + file
+    let binaryString = getBinary(text: try? String(contentsOf: URL(fileURLWithPath: absolutePath), encoding: .utf8))
+    let startPoint = arc4random_uniform(UInt32((binaryString.count) - 16))
+
+    let lowerBound = binaryString.index(binaryString.startIndex, offsetBy: Int(startPoint))
+    let upperBound = binaryString.index(binaryString.startIndex, offsetBy: Int(startPoint + 16))
+    return String(binaryString[lowerBound..<upperBound])
 }
 
 func searchFiles(temp: String) -> String {
@@ -23,53 +47,32 @@ func searchFiles(temp: String) -> String {
     return emp!.absoluteString
 }
 
-if let documentsPathString = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
-    let myContent = getContentDocuments(path: documentsPathString)
-    let foo = try? FileManager.default.subpathsOfDirectory(atPath: myContent![5])
+print("Enter the path of file, milord: ")
+let mainFile = "Japan/Yokohama/test.txt"
+
+let miracleBinary = getRandom_16_bytes(file: mainFile)
+
+
+if NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first != nil {
+    let foo = try? FileManager.default.subpathsOfDirectory(atPath: getMyFolder())
     for folder in foo! {
-        var pathMainFolder = myContent![5] + "/" + folder
+        let pathMainFolder = getMyFolder() + "/" + folder
         var checkDir: ObjCBool = false
 
-
-
-
-
         if FileManager.default.fileExists(atPath: pathMainFolder, isDirectory: &checkDir) {
-            if checkDir.boolValue {
-                print("true")
-                let deeplyContent = try? FileManager.default.contentsOfDirectory(atPath: pathMainFolder)
-                for deeply in deeplyContent! {
-                    print(deeply)
-                    var fk = pathMainFolder + "/" + deeply + "/"
-                    print(fk)
-                    var tempBool: ObjCBool = false
-                    if FileManager.default.fileExists(atPath: fk, isDirectory: &tempBool) {
-                        if tempBool.boolValue {
-                            print("exixst")
-                        } else {
-                            print("non exists")
-                        }
+            if !checkDir.boolValue {
+                let data = try? NSString(contentsOfFile: pathMainFolder, encoding: String.Encoding.utf8.rawValue)
+                if data != nil {
+                    let checking = getBinary(text: data as String?)
+                    if (checking.contains(miracleBinary)) {
+                        print("this is compatible: \(data!)")
                     }
+                    print("Just strings from each file: \(String(describing: data))")
                 }
             }
-            else {
-                var data = try? NSString(contentsOfFile: pathMainFolder, encoding: String.Encoding.utf8.rawValue)
-                if data == nil {
-                    print("nothing")
-                } else {
-                    if (data?.contains("kel"))! {
-                        print("ok")
-                    }
-                    print("data \(data!)")
-                }
-            }
+
         }
-
     }
-}
-
-func searchData(rootPath: String) {
-
 }
 
 
