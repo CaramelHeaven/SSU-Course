@@ -33,28 +33,32 @@ func getBinary(text: String?) -> String {
 
 func getRandom_16_bytes(file: String) -> String {
     let absolutePath = getMyFolder() + "/" + file
-    let binaryString = getBinary(text: try? String(contentsOf: URL(fileURLWithPath: absolutePath), encoding: .utf8))
-    let startPoint = arc4random_uniform(UInt32((binaryString.count) - 16))
+    var strFromFile = try! String(contentsOf: URL(fileURLWithPath: absolutePath), encoding: .utf8)
 
-    let lowerBound = binaryString.index(binaryString.startIndex, offsetBy: Int(startPoint))
-    let upperBound = binaryString.index(binaryString.startIndex, offsetBy: Int(startPoint + 16))
-    return String(binaryString[lowerBound..<upperBound])
+    let startPoint = arc4random_uniform(UInt32((strFromFile.count) - 16))
+    let lowerBound = strFromFile.index(strFromFile.startIndex, offsetBy: Int(startPoint))
+    let upperBound = strFromFile.index(strFromFile.startIndex, offsetBy: Int(startPoint + 16))
+
+    strFromFile = String(strFromFile[lowerBound..<upperBound])
+    print("Random chars: \(strFromFile), count: \(strFromFile.count)")
+    return String(getBinary(text: strFromFile))
 }
 
 func searchFiles(temp: String) -> String {
     let fileManager = FileManager.default
-    var emp = fileManager.containerURL(forSecurityApplicationGroupIdentifier: temp)
+    let emp = fileManager.containerURL(forSecurityApplicationGroupIdentifier: temp)
     return emp!.absoluteString
 }
 
 print("Enter the path of file, milord: ")
-let mainFile = "Japan/Yokohama/test.txt"
+let mainFile = "England/London/test45.txt"
 
 let miracleBinary = getRandom_16_bytes(file: mainFile)
 
-
 if NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first != nil {
     let foo = try? FileManager.default.subpathsOfDirectory(atPath: getMyFolder())
+    var count = 0
+
     for folder in foo! {
         let pathMainFolder = getMyFolder() + "/" + folder
         var checkDir: ObjCBool = false
@@ -63,19 +67,17 @@ if NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true
             if !checkDir.boolValue {
                 let data = try? NSString(contentsOfFile: pathMainFolder, encoding: String.Encoding.utf8.rawValue)
                 if data != nil {
-                    let checking = getBinary(text: data as String?)
-                    if (checking.contains(miracleBinary)) {
-                        print("this is compatible: \(data!)")
+                    if (!pathMainFolder.contains(mainFile)) {
+                        let checking = getBinary(text: data as String?)
+                        if (checking.contains(miracleBinary)) {
+                            print("text: \(String(describing: data!))")
+                            print("path: \(pathMainFolder)")
+                            count = count + 1
+                        }
                     }
-                    print("Just strings from each file: \(String(describing: data))")
                 }
             }
-
         }
     }
+    print("count compatible: \(count)")
 }
-
-
-
-
-
