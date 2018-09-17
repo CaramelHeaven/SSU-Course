@@ -4,16 +4,18 @@ public class EliminateEpsRules {
 
     private static Map<String, List<String>> map;
     private static List<String> epsContainer;
+    private static List<String> listDiveInto;
 
     public static void main(String[] args) {
 
         map = new LinkedHashMap<>();
         epsContainer = new ArrayList<>();
 
-        map.put("S", new ArrayList<>(Arrays.asList("ABCd")));
+        map.put("S", new ArrayList<>(Arrays.asList("ABCdFF")));
         map.put("A", new ArrayList<>(Arrays.asList("A", "eps")));
         map.put("B", new ArrayList<>(Arrays.asList("AC")));
         map.put("C", new ArrayList<>(Arrays.asList("C", "eps")));
+        map.put("F", new ArrayList<>(Arrays.asList("eps")));
 
         provideEliminate(map);
 
@@ -35,46 +37,68 @@ public class EliminateEpsRules {
         }
 
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            //по каждому правилу running
             for (String rule : entry.getValue()) {
+                List<String> epsList = new ArrayList<>();
                 for (String eps : epsContainer) {
                     if (rule.contains(eps)) {
-                        addedRule(entry.getKey(), rule, eps);
-                        clearingBaseRule(entry.getKey(), rule, epsContainer);
+                        epsList.add(eps);
+                    }
+                }
+                provideEpsRule(entry.getKey(), rule, epsList);
+            }
+        }
+    }
+
+    private static void provideEpsRule(String key, String rule, List<String> epsList) {
+        char[] arrayOfNeTerminals = rule.toCharArray();
+        List<String> listWithoutEps = new ArrayList<>(map.get(key));
+        int counter = 0; // counter eps char
+        for (char arrayOfNeTerminal : arrayOfNeTerminals) {
+            if (String.valueOf(arrayOfNeTerminal).equals(String.valueOf(arrayOfNeTerminal).toUpperCase())) {
+                StringBuilder withoutEps = new StringBuilder(rule);
+                for (String eps : epsList) {
+                    if (arrayOfNeTerminal == eps.charAt(0)) {
+                        counter++;
+                        withoutEps.deleteCharAt(withoutEps.indexOf(eps));
+                        listWithoutEps.add(withoutEps.toString());
                     }
                 }
             }
         }
-    }
-
-    private static void addedRule(String key, String rule, String eps) {
-        List<String> rules = new ArrayList<>(map.get(key));
-        char[] arrayOfString = rule.toCharArray();
-        for (int i = 0; i < arrayOfString.length; i++) {
-            if (arrayOfString[i] == eps.charAt(0)) {
-                String newRule = rule;
-                newRule = newRule.replace(String.valueOf(arrayOfString[i]), "");
-                if (rules.contains("eps")) {
-                    rules.remove("eps");
+        if (counter > 1) {
+            for (char arrayOfNeTerminal : arrayOfNeTerminals) {
+                StringBuilder builder = new StringBuilder(rule);
+                if (String.valueOf(arrayOfNeTerminal).equals(String.valueOf(arrayOfNeTerminal).toUpperCase())) {
+                    for (String eps : epsList) {
+                        if (eps.contains(String.valueOf(arrayOfNeTerminal))) {
+                            builder.deleteCharAt(builder.indexOf(String.valueOf(arrayOfNeTerminal)));
+                        }
+                    }
                 }
-                if (newRule.length() != 0) {
-                    rules.add(newRule);
-                }
-                map.put(key, rules);
+                listWithoutEps.add(builder.toString());
             }
         }
+        listDiveInto = new ArrayList();
+        diveIntoRule(new StringBuilder(rule));
+        listWithoutEps.addAll(listDiveInto);
+        Set<String> clearing = new LinkedHashSet<>(listWithoutEps);
+        listWithoutEps.clear();
+        listWithoutEps.addAll(clearing);
+        map.put(key, listWithoutEps);
     }
 
-    private static void clearingBaseRule(String key, String rule, List<String> epsList) {
-        List<String> commonRules = map.get(key);
-        for (String eps : epsList) {
-            rule = rule.replace(eps, "");
+
+    private static void diveIntoRule(StringBuilder rule) {
+        for (char letter : rule.toString().toCharArray()) {
+            if (epsContainer.contains(String.valueOf(letter))) {
+                String eps = epsContainer.get(epsContainer.indexOf(String.valueOf(letter)));
+                if (rule.toString().contains(eps)) {
+                    rule.deleteCharAt(rule.indexOf(String.valueOf(eps)));
+                    listDiveInto.add(rule.toString());
+                    diveIntoRule(rule);
+                }
+            }
         }
-        if (rule.length() != 0) {
-            commonRules.add(rule);
-        }
-        Set<String> unique = new LinkedHashSet<>(commonRules);
-        commonRules.clear();
-        commonRules.addAll(unique);
-        map.put(key, commonRules);
     }
 }
