@@ -11,11 +11,9 @@ public class EliminateEpsRules {
         map = new LinkedHashMap<>();
         epsContainer = new ArrayList<>();
 
-        map.put("S", new ArrayList<>(Arrays.asList("ABCdFF")));
-        map.put("A", new ArrayList<>(Arrays.asList("A", "eps")));
-        map.put("B", new ArrayList<>(Arrays.asList("AC")));
-        map.put("C", new ArrayList<>(Arrays.asList("C", "eps")));
-        map.put("F", new ArrayList<>(Arrays.asList("eps")));
+        map.put("S", new ArrayList<>(Arrays.asList("AB")));
+        map.put("A", new ArrayList<>(Arrays.asList("aAA", "eps")));
+        map.put("B", new ArrayList<>(Arrays.asList("bBB", "eps")));
 
         provideEliminate(map);
 
@@ -31,13 +29,11 @@ public class EliminateEpsRules {
         //get eps rules
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             if (entry.getValue().contains("eps")) {
-                System.out.println("contains: " + entry.getValue());
                 epsContainer.add(entry.getKey());
             }
         }
 
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            //по каждому правилу running
             for (String rule : entry.getValue()) {
                 List<String> epsList = new ArrayList<>();
                 for (String eps : epsContainer) {
@@ -46,6 +42,16 @@ public class EliminateEpsRules {
                     }
                 }
                 provideEpsRule(entry.getKey(), rule, epsList);
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            for (String rule : entry.getValue()) {
+                if (rule.equals("eps")) {
+                    List<String> kek = new ArrayList<>(entry.getValue());
+                    kek.remove("eps");
+                    map.put(entry.getKey(), kek);
+                }
             }
         }
     }
@@ -88,14 +94,15 @@ public class EliminateEpsRules {
         map.put(key, listWithoutEps);
     }
 
-
     private static void diveIntoRule(StringBuilder rule) {
         for (char letter : rule.toString().toCharArray()) {
             if (epsContainer.contains(String.valueOf(letter))) {
                 String eps = epsContainer.get(epsContainer.indexOf(String.valueOf(letter)));
                 if (rule.toString().contains(eps)) {
                     rule.deleteCharAt(rule.indexOf(String.valueOf(eps)));
-                    listDiveInto.add(rule.toString());
+                    if (!rule.toString().equals("")) {
+                        listDiveInto.add(rule.toString());
+                    }
                     diveIntoRule(rule);
                 }
             }

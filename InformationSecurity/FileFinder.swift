@@ -77,7 +77,7 @@ func getRandom(massive: [String]) -> [String] {
 }
 
 print("Put here reference from your file, sir.")
-//"/Users/sergeyfominov/Documents/TestDirectory/download.png"
+
 let mainFile = readLine()
 let mainBytes = getBytesAndRandomingIt(file: mainFile!, boolTake: true)
 

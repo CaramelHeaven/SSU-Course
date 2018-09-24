@@ -1,106 +1,144 @@
-package com.caramelheaven.learnsomething.ChomskyNormalForm;
+import java.util.*;
 
-import android.annotation.SuppressLint;
+public class ChomskyNormal {
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import io.reactivex.Observable;
-import io.reactivex.functions.Function;
-
-public class ChomskyNormalForm {
-
-    private static List<String> containsRandomLetters = new ArrayList<>();
-    private static String alphabet = "QWERTYUIOPASDFGHJKLZXCVBNM";
+    private static Map<String, List<String>> map;
+    private static List<String> listOfRules;
+    private static Map<String, List<String>> testingMap;
 
     public static void main(String[] args) {
-        List<List<String>> matrix = new ArrayList<>();
-        matrix.add(Arrays.asList("S", "->", "AB"));
-        matrix.add(Arrays.asList("A", "->", "aBcB"));
-        matrix.add(Arrays.asList("D", "->", "def"));
 
-        matrix = removeLongRules(matrix);
-        System.out.println(matrix);
-        removeEps(matrix);
+        map = new LinkedHashMap<>();
+
+        map.put("S", new ArrayList<>(Arrays.asList("AaBCDb", "BCab")));
+        map.put("A", new ArrayList<>(Arrays.asList("aABBB", "Daaba")));
+        map.put("C", new ArrayList<>(Arrays.asList("aC", "baa")));
+        map.put("D", new ArrayList<>(Arrays.asList("AD", "aaDBC", "aaa")));
+
+        provideChomsky(map);
     }
 
-    private static List<List<String>> removeLongRules(List<List<String>> myList) {
-        List<String[]> result = new ArrayList<>();
-        Map<String, String[]> bindingByLetter = new HashMap<>();
+    private static void provideChomsky(Map<String, List<String>> mapGrammar) {
+        testingMap = new HashMap<>();
 
-        for (List<String> list : myList) {
-            int count = list.get(2).length();
-            if (count > 2) {
-                String getCacheLetter = "";
-                int changeChar = 1;
-                StringBuilder bulder = new StringBuilder(list.get(2));
-                for (int i = 0; i < count - 2; i++) {
-                    bulder.insert(changeChar, "R");
-                    changeChar += 2;
-                }
-                String[] currentMassive = bulder.toString().split("R");
-                System.out.println("current:" + Arrays.toString(currentMassive));
-                getCacheLetter = getRandomLetter();
-                containsRandomLetters.add(getCacheLetter);
-                for (int q = 0; q < currentMassive.length - 1; q++) {
-                    currentMassive[q] = currentMassive[q] + getCacheLetter;
-                }
-                System.out.println("after: " + Arrays.toString(currentMassive));
+        System.out.println("Введенная грамматика: ");
+        map.forEach((s, strings) -> {
+            System.out.println("" + s + " -> " + strings);
+        });
 
-                for (int q = 0; q < currentMassive.length; q++) {
-                    bindingByLetter.put(getCacheLetter, currentMassive);
-                }
-                result.add(currentMassive);
-            }
-        }
-
-        List<List<String>> futureRules = new ArrayList<>();
-        for (Map.Entry<String, String[]> entry : bindingByLetter.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : mapGrammar.entrySet()) {
             for (String rule : entry.getValue()) {
-                if (rule.contains(entry.getKey())) {
-                    String let = getRandomLetter();
-                    containsRandomLetters.add(let);
-                    futureRules.add(Arrays.asList(let, "->", rule));
-                } else {
-                    futureRules.add(Arrays.asList(entry.getKey(), "->", rule));
-                }
+                listOfRules = new ArrayList<>();
+                char[] letters = rule.toCharArray();
+                diveIntoRules(entry.getKey(), letters);
             }
-            System.out.println("key: " + entry.getKey() + " word:  " + Arrays.toString(entry.getValue()));
         }
-        return futureRules;
+        System.out.println();
+        System.out.println("Преобразованная грамматика: ");
+
+        testingMap.forEach((s, strings) -> {
+            System.out.println("" + s + " -> " + strings);
+        });
     }
 
-    @SuppressLint("CheckResult")
-    private static void removeEps(List<List<String>> matrix) {
-        List<String> containerEps = new ArrayList<>();
-        Observable.just(matrix)
-                .flatMapIterable((Function<List<List<String>>, Iterable<List<String>>>) lists -> lists)
-                .doOnNext(list -> {
-                    if (list.get(2).contains("e")) {
-                        containerEps.add(list.get(2));
+    private static void diveIntoRules(String key, char[] ruleChars) {
+        switch (ruleChars.length) {
+            case 1:
+                if (String.valueOf(ruleChars[0]).equals(String.valueOf(ruleChars[0]).toLowerCase())) {
+                    List<String> array = new ArrayList<>();
+                    if (testingMap.containsKey(key)) {
+                        array.addAll(testingMap.get(key));
                     }
-                })
-                .doOnNext(list -> {
-
-                })
-                .subscribe();
+                    array.add(new String(ruleChars));
+                    testingMap.put(key, array);
+                }
+                break;
+            case 2:
+                if (String.valueOf(ruleChars[0]).equals(String.valueOf(ruleChars[0]).toUpperCase())
+                        && (String.valueOf(ruleChars[1]).equals(String.valueOf(ruleChars[1]).toUpperCase()))) {
+                    List<String> array = new ArrayList<>();
+                    if (testingMap.containsKey(key)) {
+                        array.addAll(testingMap.get(key));
+                    }
+                    array.add(String.valueOf(ruleChars));
+                    testingMap.put(key, array);
+                } else {
+                    extraChecking(key, ruleChars);
+                }
+                break;
+            default:
+                String safetyLetter = String.valueOf(ruleChars[0]);
+                if (safetyLetter.equals(safetyLetter.toLowerCase())) {
+                    safetyLetter = safetyLetter + "'";
+                }
+                char[] newArray = Arrays.copyOfRange(ruleChars, 1, ruleChars.length);
+                if (newArray.length == 1) {
+                    extraChecking(key, ruleChars);
+                } else {
+                    String newNeTerminal = "<" + String.valueOf(newArray) + ">";
+                    String newRule = safetyLetter + newNeTerminal;
+                    List<String> container = new ArrayList<>();
+                    if (testingMap.containsKey(key)) {
+                        container.addAll(testingMap.get(key));
+                    }
+                    container.add(newRule);
+                    testingMap.put(key, container);
+                    testingMap.put(newNeTerminal, new ArrayList<>());
+                    diveIntoRules(newNeTerminal, newArray);
+                }
+        }
     }
 
-    private static String getRandomLetter() {
-        Random rand = new Random();
-        boolean repeated = true;
-        Character ch = null;
-        while (repeated) {
-            ch = alphabet.charAt(rand.nextInt(alphabet.length()));
-            if (!containsRandomLetters.contains(ch)) {
-                System.out.println("Не содержит: " + containsRandomLetters + " and ch: " + ch);
-                repeated = false;
+    private static void extraChecking(String key, char[] rule) {
+        if (String.valueOf(rule[0]).equals(String.valueOf(rule[0]).toUpperCase())
+                && (String.valueOf(rule[1]).equals(String.valueOf(rule[1]).toUpperCase()))) {
+            listOfRules.add(new String(rule));
+            System.out.println("rule: " + Arrays.toString(rule));
+        } else {
+            switch (rule.length) {
+                case 1:
+                    if (String.valueOf(rule[0]).equals(String.valueOf(rule[0]).toLowerCase())) {
+                        listOfRules.add(new String(rule));
+                    }
+                    System.out.println("rule: " + Arrays.toString(rule));
+                    break;
+                default:
+                    if (rule[0] == rule[1] && String.valueOf(rule[0]).equals(String.valueOf(rule[0]).toLowerCase())) {
+                        String symbol = "" + String.valueOf(rule[0]) + "'";
+                        String doubleLetter = symbol + symbol;
+
+                        List<String> container = new ArrayList<>();
+                        if (testingMap.containsKey(key)) {
+                            container.addAll(testingMap.get(key));
+                        }
+                        container.add(doubleLetter);
+                        testingMap.put(key, container);
+
+                        List<String> sy = new ArrayList<>();
+                        sy.add(String.valueOf(rule[0]));
+                        testingMap.put(symbol, sy);
+                    } else {
+                        List<String> container = new ArrayList<>();
+                        if (testingMap.containsKey(key)) {
+                            container.addAll(testingMap.get(key));
+                        }
+                        StringBuilder futureRule = new StringBuilder();
+                        for (char aRule : rule) {
+                            if (String.valueOf(aRule).equals(String.valueOf(aRule).toLowerCase())) {
+                                String symbol = "" + aRule + "'";
+                                futureRule.append(symbol);
+                                if (!testingMap.containsKey(symbol)) {
+                                    List<String> temp = new ArrayList<>(Arrays.asList(String.valueOf(aRule)));
+                                    testingMap.put(symbol, temp);
+                                }
+                            } else {
+                                futureRule.append(aRule);
+                            }
+                        }
+                        container.add(futureRule.toString());
+                        testingMap.put(key, container);
+                    }
             }
         }
-        return ch.toString();
     }
 }

@@ -7,12 +7,12 @@ public class RemovalOfChainRules {
 
     private static Map<String, List<String>> map;
     private static List<String> helper;
+    private static List<String> futureUselessNeTerminals;
 
     public static void main(String[] args) {
-        System.out.println("hello");
-
         map = new LinkedHashMap<>();
         helper = new ArrayList<>();
+        futureUselessNeTerminals = new ArrayList<>();
 
         System.out.println("Enter grammar, please: ");
         boolean checking = true;
@@ -30,7 +30,6 @@ public class RemovalOfChainRules {
                 pullingMap(input);
             }
         }
-        System.out.flush();
 
         System.out.println("Entered grammar");
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
@@ -39,10 +38,10 @@ public class RemovalOfChainRules {
 
         provideChainRules(map);
 
-        System.out.println("Deleted chain rules");
-        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        for (String key : futureUselessNeTerminals) {
+            map.remove(key);
         }
+        map.forEach((s, strings) -> System.out.println("" + s + " -> " + strings));
     }
 
     private static void provideChainRules(Map<String, List<String>> grammar) {
@@ -50,6 +49,7 @@ public class RemovalOfChainRules {
             helper.clear();
             for (String rule : entry.getValue()) {
                 if ((rule.length() == 1) && rule.equals(rule.toUpperCase())) {
+                    futureUselessNeTerminals.add(rule);
                     chainRules(rule, entry.getKey());
                 }
             }
