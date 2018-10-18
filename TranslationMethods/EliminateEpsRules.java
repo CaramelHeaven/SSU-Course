@@ -11,9 +11,11 @@ public class EliminateEpsRules {
         map = new LinkedHashMap<>();
         epsContainer = new ArrayList<>();
 
-        map.put("S", new ArrayList<>(Arrays.asList("AB")));
-        map.put("A", new ArrayList<>(Arrays.asList("aAA", "eps")));
-        map.put("B", new ArrayList<>(Arrays.asList("bBB", "eps")));
+        map.put("S", new ArrayList<>(Arrays.asList("AB", "Ca")));
+        map.put("A", new ArrayList<>(Arrays.asList("aA", "BB")));
+        map.put("B", new ArrayList<>(Arrays.asList("CC", "aC", "B")));
+        map.put("C", new ArrayList<>(Arrays.asList("aC", "b", "eps")));
+        map.put("D", new ArrayList<>(Arrays.asList("ABC", "ACCBa")));
 
         provideEliminate(map);
 
