@@ -1,6 +1,6 @@
 import Foundation
 
-public extension String {
+extension String {
     func between(_ left: String, _ right: String) -> String? {
         guard let leftRange = range(of: left), let rightRange = range(of: right, options: .backwards)
             , leftRange.upperBound <= rightRange.lowerBound
@@ -12,10 +12,32 @@ public extension String {
     }
 }
 
+func insertHidenText(stroke: String, hidenWord: String, cache: String) -> String {
+    var completedStroke = ""
+    var indicesWord = 1
+    var counter = 0
+    for index in stroke.indices {
+        if stroke[index] != cache[index] && indicesWord == 1 {
+            completedStroke += stroke[..<stroke.index(stroke.startIndex, offsetBy: counter)]
+            completedStroke += hidenWord
+            indicesWord += 1
+            completedStroke += " " + String(stroke.suffix(stroke.count - counter))
+            break
+        }
+        counter += 1
+    }
+    if completedStroke.last! == " " {
+        completedStroke = String(completedStroke.dropLast())
+    }
+    return completedStroke
+}
+
+// MAIN
 let file = "test.txt"
 var simpleCache = ""
 var helping = ""
 var hidenText = ""
+var sizeHidenText = 0
 var allText = ""
 print("Enter the instruction, sir ")
 
@@ -48,7 +70,7 @@ for kek in buf {
     }
 }
 
-print(binaryStream)
+sizeHidenText = binaryStream.count
 
 var lineArray = [String]()
 allText.enumerateLines { (line, _) in
@@ -56,7 +78,6 @@ allText.enumerateLines { (line, _) in
 }
 
 for line in lineArray.indices {
-    print(binaryStream)
     if binaryStream.count > 1 {
         let binaryChar = binaryStream[..<binaryStream.index(binaryStream.startIndex, offsetBy: 1)]
         binaryStream.remove(at: binaryStream.startIndex)
@@ -84,43 +105,65 @@ if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMa
     }
     catch { /* error handling here */ }
 }
+print("encoded file")
 let ke = readLine()
 if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
 
     var lineArray = [String]()
     var hidenBytes = ""
-    var futurePoem = ""
-    var i = 0
 
     let fileURL = dir.appendingPathComponent(file)
     hidenText = try String(contentsOf: fileURL, encoding: .utf8)
     allText = hidenText
 
     allText.enumerateLines { (line, _) in
-        if line.contains(helping) && i == 0 {
-            print("append simple cache: \(line) and: \(simpleCache)")
-            lineArray.append(simpleCache)
-            i = i + 1
-        } else {
-            lineArray.append(line)
-        }
+        lineArray.append(line)
     }
-    
-    print(lineArray)
 
+    var counter = 0
     for line in lineArray {
-        if String(line.last!) == " " {
-            hidenBytes += "1"
-        } else {
-            hidenBytes += "0"
+        if counter == 8 {
+            hidenBytes += " "
+            counter = 0
         }
-        futurePoem = futurePoem + line + "\n"
+        if sizeHidenText > 0 {
+            if String(line.last!) == " " {
+                hidenBytes += "1"
+            } else {
+                hidenBytes += "0"
+            }
+            sizeHidenText -= 1
+            counter += 1
+        }
     }
 
+    let hidenWord = hidenBytes.split(separator: " ").compactMap {
+        String(Unicode.Scalar(Int($0, radix: 2)!)!)
+    }.joined(separator: "")
+
+    var tem = 0
+    var completed = ""
+    allText.enumerateLines { (line, _) in
+        var myLine = ""
+        if line.contains(helping) && tem == 0 {
+            completed.append(insertHidenText(stroke: line, hidenWord: hidenWord, cache: simpleCache))
+            completed += "\n"
+            tem += 1
+        } else {
+            if String(line.last!) == " " {
+                myLine = line
+                completed.append(String(myLine.dropLast()) + "\n")
+            } else {
+                completed.append(line + "\n")
+            }
+
+        }
+    }
     let url = dir.appendingPathComponent(file)
 
     do {
-        try futurePoem.write(to: url, atomically: false, encoding: .utf8)
+        try completed.write(to: url, atomically: false, encoding: .utf8)
     }
     catch { /* error handling here */ }
+    print("decoded file")
 }
