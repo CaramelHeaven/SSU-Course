@@ -1,122 +1,84 @@
 import Foundation
 
 extension String {
-    func between(_ left: String, _ right: String) -> String? {
-        guard let leftRange = range(of: left), let rightRange = range(of: right, options: .backwards)
-            , leftRange.upperBound <= rightRange.lowerBound
-            else { return nil }
-
-        let sub = self[leftRange.upperBound...]
-        let closestToLeftRange = sub.range(of: right)!
-        return String(sub[..<closestToLeftRange.lowerBound])
-    }
-}
-
-func insertHidenText(stroke: String, hidenWord: String, cache: String) -> String {
-    var completedStroke = ""
-    var indicesWord = 1
-    var counter = 0
-    for index in stroke.indices {
-        if stroke[index] != cache[index] && indicesWord == 1 {
-            completedStroke += stroke[..<stroke.index(stroke.startIndex, offsetBy: counter)]
-            completedStroke += hidenWord
-            indicesWord += 1
-            completedStroke += " " + String(stroke.suffix(stroke.count - counter))
-            break
+    typealias Byte = UInt8
+    var hexToBytes: [Byte] {
+        var start = startIndex
+        return stride(from: 0, to: count, by: 2).compactMap { _ in
+            let end = index(after: start)
+            defer { start = index(after: end) }
+            return Byte(self[start...end], radix: 16)
         }
-        counter += 1
     }
-    if completedStroke.last! == " " {
-        completedStroke = String(completedStroke.dropLast())
+    var hexToBinary: String {
+        return hexToBytes.map {
+            let binary = String($0, radix: 2)
+            return repeatElement("0", count: 8 - binary.count) + binary
+        }.joined()
     }
-    return completedStroke
 }
-
-// MAIN
+print("Enter the test, sir")
+var enteredText = readLine()!
 let file = "second.txt"
-var simpleCache = ""
-var helping = ""
-var hidenText = ""
-var sizeHidenText = 0
-var allText = ""
-var cache = ""
-var stayedWord = ""
-var binaryStream = ""
-var hidenBytes = ""
-print("Enter the instruction, sir ")
+var binaryStream = String()
+var lineArray = [String]()
+var cacheLines = String()
 
-let instruction = readLine()
+//ENCODED
+if let data = enteredText.data(using: .windowsCP1251) {
+    let encoded = data.map { String(format: "%02hhX", $0) + "." }.joined()
+    var bytes = encoded.components(separatedBy: ".")
+    bytes.removeLast()
+    for byte in bytes {
+        binaryStream += byte.hexToBinary
+        print("binary: \(byte.hexToBinary)")
+    }
+}
 
 if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-
-    let fileURL = dir.appendingPathComponent(file)
-    hidenText = try String(contentsOf: fileURL, encoding: .utf8)
-    allText = hidenText
-    hidenText = hidenText.between("|", "|")!
+    let allText = try String(contentsOf: dir.appendingPathComponent(file), encoding: .windowsCP1251)
     allText.enumerateLines { (line, _) in
-        if line.contains(hidenText) {
-            simpleCache += line
-            helping = simpleCache.replacingOccurrences(of: " |" + hidenText + "|", with: "")
-            return
-        }
+        lineArray.append(line)
     }
-    cache = allText
-    allText = allText.replacingOccurrences(of: " |" + hidenText + "|", with: "")
+    cacheLines = allText
 }
-
-let buf: [UInt8] = Array(hidenText.utf8)
-
-for kek in buf {
-    if kek.leadingZeroBitCount > 0 {
-        let missingZeros = [String](repeating: "0", count: kek.leadingZeroBitCount)
-        binaryStream += missingZeros.joined() + String(kek, radix: 2)
-    }
-}
-
-sizeHidenText = binaryStream.count
-
-var lineArray = [String]()
-allText.enumerateLines { (line, _) in
-    lineArray.append(line)
-}
-print("binary stream: \(binaryStream)")
-hidenBytes = binaryStream
 
 for index in lineArray.indices {
     var writenLine = ""
     var k = 0
-    let separatedLine = lineArray[index].components(separatedBy: " ")
+    let separatedLine = lineArray[index].split(separator: " ")
     for i in separatedLine.indices {
-        if binaryStream.count > 1 {
-            let binaryChar = binaryStream[..<binaryStream.index(binaryStream.startIndex, offsetBy: 1)]
-            binaryStream.remove(at: binaryStream.startIndex)
-            if String(binaryChar) != "0" {
-                writenLine += separatedLine[i] + "  "
+        if i != separatedLine.count - 1 {
+            if binaryStream.count > 1 {
+                let binaryChar = binaryStream[..<binaryStream.index(binaryStream.startIndex, offsetBy: 1)]
+                binaryStream.remove(at: binaryStream.startIndex)
+                if String(binaryChar) != "0" {
+                    writenLine += separatedLine[i] + "  "
+                } else {
+                    writenLine += separatedLine[i] + " "
+                }
             } else {
-                writenLine += separatedLine[i] + " "
+                let binaryChar = binaryStream
+                if binaryChar != "0" {
+                    writenLine += separatedLine[i] + "  "
+                } else {
+                    writenLine += separatedLine[i] + " "
+                }
+                var lastIndex = index
+                lastIndex += 1
+                while lastIndex != separatedLine.count {
+                    if lastIndex == separatedLine.count - 1 {
+                        writenLine += separatedLine[lastIndex]
+                    } else {
+                        writenLine += separatedLine[lastIndex] + " "
+                    }
+                    lastIndex += 1
+                }
+                k += 1
+                break
             }
         } else {
-            let binaryChar = binaryStream
-            if binaryChar != "0" {
-                writenLine += separatedLine[i] + "  "
-            } else {
-                writenLine += separatedLine[i] + " "
-            }
-            stayedWord = separatedLine[i]
-            k += 1
-            var endLine = i
-            var isFirst = true
-            endLine += 1
-            while endLine != separatedLine.count {
-                if isFirst {
-                    writenLine += separatedLine[endLine]
-                    isFirst = false
-                } else {
-                    writenLine += " " + separatedLine[endLine]
-                }
-                endLine += 1
-            }
-            break
+            writenLine += separatedLine[i]
         }
     }
     lineArray[index] = writenLine
@@ -125,79 +87,78 @@ for index in lineArray.indices {
     }
 }
 
-var myOwnText = ""
-for line in lineArray {
-    myOwnText = myOwnText + line + "\n"
+var recordText = ""
+
+for changedLine in lineArray {
+    recordText += changedLine + "\n"
 }
 
 if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-    let fileURL = dir.appendingPathComponent(file)
-
     do {
-        try myOwnText.write(to: fileURL, atomically: false, encoding: .utf8)
+        try recordText.write(to: dir.appendingPathComponent(file), atomically: false, encoding: .windowsCP1251)
     }
-    catch { /* error handling here */ }
+    catch { }
 }
-print("saved word: \(stayedWord)")
 print("encoded file")
-let ke = readLine()
+
+//DECODED
+print("Press any key for decoded this file")
+let key = readLine()
+lineArray.removeAll()
+var revivalBytes = ""
+var decodedArray = [UInt8]()
+
 if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-
-    var lineArray = [String]()
-    var hidеnBytes = ""
-
-    let fileURL = dir.appendingPathComponent(file)
-    hidenText = try String(contentsOf: fileURL, encoding: .utf8)
-    allText = hidenText
-
+    let allText = try String(contentsOf: dir.appendingPathComponent(file), encoding: .windowsCP1251)
     allText.enumerateLines { (line, _) in
         lineArray.append(line)
     }
+}
 
-    for line in lineArray {
-        let separatedLine = line.split(separator: " ", omittingEmptySubsequences: false)
-        for index in separatedLine.indices {
-            if separatedLine[index] != stayedWord {
-                if separatedLine[index] == "" {
-                    hidеnBytes += "1"
-                } else {
-                    hidеnBytes += "0"
-                }
-            } else {
-                break
+var counterByte = 0
+
+for line in lineArray {
+    var massive = [Character]()
+    for index in line.indices {
+        massive.append(line[index])
+    }
+    for i in massive.indices {
+        var nextChar = i
+        var lastChar = i
+        nextChar += 1
+        lastChar -= 1
+        if counterByte == 8 {
+            revivalBytes += " "
+            counterByte = 0
+        }
+        if nextChar < massive.count {
+            if massive[i] == " " && massive[nextChar] == " " {
+                revivalBytes += "1"
+                counterByte += 1
+            } else if massive[i] == " " && massive[nextChar] != " " && massive[lastChar] != " " {
+                revivalBytes += "0"
+                counterByte += 1
             }
         }
     }
+}
 
-    print("hiden bytes \(hidenBytes)")
+print("revivaL: \(revivalBytes)")
 
-    let hidenWord = hidenBytes.split(separator: " ").compactMap {
-        String(Unicode.Scalar(Int($0, radix: 2)!)!)
-    }.joined(separator: "")
-
-    var tem = 0
-    var completed = ""
-    allText.enumerateLines { (line, _) in
-        var myLine = ""
-        if line.contains(helping) && tem == 0 {
-            completed.append(insertHidenText(stroke: line, hidenWord: hidenWord, cache: simpleCache))
-            completed += "\n"
-            tem += 1
-        } else {
-            if String(line.last!) == " " {
-                myLine = line
-                completed.append(String(myLine.dropLast()) + "\n")
-            } else {
-                completed.append(line + "\n")
-            }
-
-        }
+revivalBytes = revivalBytes
+    .split(separator: " ")
+    .compactMap {
+        decodedArray.append(UInt8(Int($0, radix: 2)!))
+        return " "
     }
-    let url = dir.appendingPathComponent(file)
+    .joined(separator: " ")
 
+var decodedText = String(bytes: decodedArray, encoding: .windowsCP1251)
+print("decoded text: \(decodedText!)")
+
+if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
     do {
-        try cache.write(to: url, atomically: false, encoding: .utf8)
+        try cacheLines.write(to: dir.appendingPathComponent(file), atomically: false, encoding: .windowsCP1251)
     }
-    catch { /* error handling here */ }
-    print("decoded file")
+    catch { }
 }
