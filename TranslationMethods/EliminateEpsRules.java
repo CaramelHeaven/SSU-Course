@@ -6,24 +6,48 @@ public class EliminateEpsRules {
     private static Set<String> epsContainer;
     private static final String E = "EPSILON";
     private static Set<String> combinedRule;
+    private static boolean flag = true;
+    private static boolean isE = false;
 
     public static void main(String[] args) {
 
         map = new LinkedHashMap<>();
         epsContainer = new LinkedHashSet<>();
 
-        map.put("S", new ArrayList<>(Arrays.asList("AF")));
+        map.put("S", new ArrayList<>(Arrays.asList("A")));
         map.put("A", new ArrayList<>(Arrays.asList("aA", "BB")));
         map.put("B", new ArrayList<>(Arrays.asList("CC", "aC", "B")));
         map.put("C", new ArrayList<>(Arrays.asList("aC", "b", E)));
         map.put("D", new ArrayList<>(Arrays.asList("ABC", "ACCBba")));
 
+//        map.put("S", new ArrayList<>(Arrays.asList("aSa")));
+//        map.put("A", new ArrayList<>(Arrays.asList("cB", "dB")));
+//        map.put("B", new ArrayList<>(Arrays.asList("cd", E)));
+
         grabAllEpsilons(map);
 
         provideEliminateEpsilons(map);
 
+        map.forEach((s, strings) -> {
+            for (String rule : strings) {
+                for (Character f : rule.toCharArray()) {
+                    if (epsContainer.contains(String.valueOf(f))) {
+                        isE = true;
+                    }
+                    break;
+                }
+                break;
+            }
+        });
+
+
+        if (isE) {
+            map.put("S'", new ArrayList<>(Arrays.asList("E", "S")));
+        }
+
         map.forEach((s, strings) -> System.out.println("key: " + s + " values: " + strings));
     }
+
 
     private static void provideEliminateEpsilons(Map<String, List<String>> map) {
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
@@ -62,17 +86,23 @@ public class EliminateEpsRules {
             String temp = containerEps.deleteCharAt(containerEps.indexOf(String.valueOf(letter))).toString();
             if (temp.length() != 0) {
                 combinedRule.add(temp + nonContainerEps);
+            } else {
+                combinedRule.add(nonContainerEps.toString());
             }
+
+
             if (containerEps.length() > 2) {
                 permutationsRule(containerEps.toString(), nonContainerEps);
             }
             containerEps.setLength(0);
             containerEps.append(cache);
         }
-        for (char character : containerEps.toString().toCharArray()) {
-            combinedRule.add(nonContainerEps.toString() + String.valueOf(character));
-            combinedRule.add(String.valueOf(character));
-        }
+
+
+        if (flag)
+            for (char character : containerEps.toString().toCharArray()) {
+                combinedRule.add(nonContainerEps.toString() + String.valueOf(character));
+            }
     }
 
 
