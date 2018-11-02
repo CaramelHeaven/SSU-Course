@@ -6,7 +6,6 @@ public class EliminateEpsRules {
     private static Set<String> epsContainer;
     private static final String E = "EPSILON";
     private static Set<String> combinedRule;
-    private static boolean flag = true;
     private static boolean isE = false;
 
     public static void main(String[] args) {
@@ -54,11 +53,16 @@ public class EliminateEpsRules {
             for (String rule : entry.getValue()) {
                 combinedRule = new LinkedHashSet<>();
                 permutationsRule(rule, new StringBuilder());
+                
                 Set<String> newRules = new LinkedHashSet<>(map.get(entry.getKey()));
                 newRules.addAll(combinedRule);
+                
                 if (newRules.contains(E)) {
                     newRules.remove(E);
+                } else if (newRules.contains("S") {
+                    newRules.remove("S");
                 }
+                           
                 map.put(entry.getKey(), new ArrayList<>(newRules));
             }
         }
@@ -99,10 +103,9 @@ public class EliminateEpsRules {
         }
 
 
-        if (flag)
-            for (char character : containerEps.toString().toCharArray()) {
-                combinedRule.add(nonContainerEps.toString() + String.valueOf(character));
-            }
+        for (char character : containerEps.toString().toCharArray()) {
+            combinedRule.add(String.valueOf(character) + nonContainerEps.toString());
+        }
     }
 
 
