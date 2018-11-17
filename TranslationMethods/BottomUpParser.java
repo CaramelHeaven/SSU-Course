@@ -63,7 +63,7 @@ public class BottomUpParser {
             cacheChainlet.deleteCharAt(0);
 
             //govnocode
-            String checkLine = container.get(GET_CHAIN).substring(1, container.get(GET_CHAIN).length());
+            String checkLine = container.get(GET_CHAIN).substring(1);
             if (!checkLine.isEmpty()) {
                 complexChars = checkLine;
             }
@@ -98,6 +98,7 @@ public class BottomUpParser {
             boolean diveMore = false;
 
             //Свертка, ласт элемент свернулся и мы смотрим, может ли новая цепь свернуться во что-нибудь больше
+            //if u return from рекурсии, ты опять прыгнешь на ту ветку событий [bug]
             for (Map.Entry<String, List<String>> entry : map.entrySet()) {
                 for (String rule : entry.getValue()) {
                     String cleanUp = container.get(GET_CHAIN).substring(1, container.get(GET_CHAIN).length());
@@ -138,8 +139,13 @@ public class BottomUpParser {
                     //break out from recursive
                     if (!DIRECTION) {
                         if (!String.valueOf(chain.charAt(0)).equals("s")) {
-                            String chain = container.get(GET_HISTORY).substring(1, container.get(GET_HISTORY).length());
+                            String chain = container.get(GET_HISTORY).substring(1);
                             container.set(GET_HISTORY, chain);
+
+                            String backChain = container.get(GET_CHAIN).substring(0, container.get(GET_CHAIN).length() - 1);
+                            backChain += lastSymbol;
+
+                            container.set(GET_CHAIN, backChain);
                         } else {
                             DIRECTION = true; //l
                         }
@@ -172,7 +178,22 @@ public class BottomUpParser {
         if (!successfulSymbolUp && DIRECTION) {
             if (!loadNextChar.isEmpty()) {
                 provideBottomUpParser(map, true);
+
+                if (!DIRECTION) {
+                    backContainerHandler();
+                    DIRECTION = true;
+
+                    provideBottomUpParser(map, false);
+                }
             }
+        } else if (successfulSymbolUp && !DIRECTION) {
+            //TODO HANDLER MAIN LOOP
+
+            //если у нас уже нет продолжения по данной цепочке, мы удаляем из чейна ласт символ и т.д.
+            backContainerHandler();
+            DIRECTION = true;
+
+            provideBottomUpParser(map, false);
         }
     }
 
@@ -189,6 +210,21 @@ public class BottomUpParser {
             container.set(GET_HISTORY, builder.toString());
         }
 
+        //show
+        System.out.println(container);
+    }
+
+    private static void backContainerHandler(){
+        String backChain = container.get(GET_CHAIN).substring(0, container.get(GET_CHAIN).length() - 1);
+        container.set(GET_CHAIN, backChain);
+
+        C--;
+        container.set(GET_COUNTER, String.valueOf(C));
+
+        String newHistory = container.get(GET_HISTORY).substring(1);
+        container.set(GET_HISTORY, newHistory);
+
+        //show
         System.out.println(container);
     }
 }
