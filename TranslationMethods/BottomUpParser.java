@@ -134,12 +134,31 @@ public class BottomUpParser {
                     } else {
                         System.out.println("i'm here");
                     }
+
+                    //break out from recursive
+                    if (!DIRECTION) {
+                        if (!String.valueOf(chain.charAt(0)).equals("s")) {
+                            String chain = container.get(GET_HISTORY).substring(1, container.get(GET_HISTORY).length());
+                            container.set(GET_HISTORY, chain);
+                        } else {
+                            DIRECTION = true; //l
+                        }
+
+                        //show
+                        System.out.println(container);
+
+                        break;
+                    }
+                }
+
+                if (!DIRECTION) {
+                    break;
                 }
             }
 
             //if chains equals nil and we come back
             if (cacheChainlet.length() == 0) {
-                container.set(GET_STATUS, "b");
+                container.set(GET_STATUS, B);
                 DIRECTION = false;
             }
 
