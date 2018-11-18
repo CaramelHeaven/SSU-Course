@@ -15,8 +15,6 @@ start:
 	UIAlarmLabel 	db 'One minute alarm. ', 0
 	clear		db '                     ', 0
 
-
-		
 decodeASCII  proc
 	push 	cx
 
@@ -55,24 +53,6 @@ alarmDecodeHandler proc
 
 	ret
 alarmDecodeHandler endp
-
-clearDisplay proc
-	mov     ax, 0B800h              ; настройка AX на сегмент видеопамяти
-        mov     es, ax                  ; запись в ES значения сегмента видеопамяти
-        xor     di, di                  ; настройка DI на начало сегмента видеопамяти
-        xor     bx, bx                  ; настройка BX на начало шаблона
-        mov     ah, 1Bh                 ; атрибут выводимых символов
-		
-	xor 	bx, bx
-@1:	
-	mov     al, clear[bx]            ; цикл для записи символов шаблона в видеопамять
-        stosw                            ; запись очередного символа и атрибута
-        inc     bx                       ; инкремент указателя на символ шаблона
-        cmp     clear[bx], 0             ; пока не конец шаблона,
-        jnz     @1                              ; запись очередного символа и атрибута
-		
-		ret
-clearDisplay endp
 
 clockHandler   proc                             ; процедура обработчика прерываний от таймера
         pushf                            ; создание в стеке структуры для IRET
@@ -181,15 +161,6 @@ clockHandler   endp                             ; конец процедуры 
 end_clock:                               ; метка для определения размера резидентной
                                          ; части программы
 load:  
-	;call clearDisplay
-
-	mov     ah, 02h                 ; функция BIOS для получения текущего времени
-        int     1Ah                      ; прерывание BIOS
-
-	mov 	temp, DH
-	mov 	cur, DH
-	dec 	temp
-
 	mov     ax,  351Ch               ; получение адреса старого обработчика
         int     21h                      ; прерываний от таймера
         mov     word ptr old, bx        ; сохранение смещения обработчика
