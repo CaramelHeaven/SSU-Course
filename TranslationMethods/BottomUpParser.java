@@ -10,8 +10,10 @@ public class BottomUpParser {
     private static final int ONE_LETTER = 0;
     private static final int MORE_LETTERS = 1;
 
+    //statements
     private static final String B = "b";
     private static final String Q = "q";
+    private static final String T = "t";
 
     private static Configuration configuration;
 
@@ -83,10 +85,17 @@ public class BottomUpParser {
             }
 
             if (grammarList.get(i).terminal.equals(lastSymbol)) {
-                upChain(grammarList.get(i).noTerminal, i, lastIndexSymbol);
+                upChain(grammarList.get(i).terminal, grammarList.get(i).noTerminal, i, lastIndexSymbol);
 
                 //show
                 System.out.println(configuration.toString());
+
+                //the end
+                if (configuration.getChain().equals("$S") && chainlet.length() == 0) {
+                    configuration.setStatement(T);
+                    System.out.println(configuration.toString());
+                    System.exit(0);
+                }
 
                 //try to cвертку еще раз
                 diveMore = true;
@@ -97,9 +106,19 @@ public class BottomUpParser {
                     break;
                 }
             } else if (grammarList.get(i).terminal.equals(someSymbols)) {
+                System.out.println("contain some symbols");
+                upChain(grammarList.get(i).terminal, grammarList.get(i).noTerminal, i, lastIndexSymbol);
+
+                //show
+                System.out.println(configuration.toString());
+
+                diveMore = true;
+                provideBottomUpParser(grammarList);
+
+                if (configuration.getStatement().equals(B)) {
+                    break;
+                }
             }
-
-
         }
 
         if (configuration.getStatement().equals(Q)) {
@@ -137,10 +156,6 @@ public class BottomUpParser {
                     loserList.addAll(loserDirections.get(lastSymbol));
                 }
 
-                if (lastSymbol.equals("*")) {
-                    System.out.println("kek");
-                }
-
                 for (int i = 0; i < grammarList.size(); i++) {
                     if (!loserList.contains(i)
                             && grammarList.get(i).terminal.equals(lastSymbol)) {
@@ -168,7 +183,6 @@ public class BottomUpParser {
 
                 //иначе сверни еще раз, и добавь * и погнал
                 if (chainlet.length() != 0) {
-                    System.out.println("kek");
                     int cutRuleIndex = Integer.parseInt(String.valueOf(configuration.getHistory().charAt(0)));
 
                     for (int i = 0; i < grammarList.size(); i++) {
@@ -252,18 +266,26 @@ public class BottomUpParser {
         configuration.setChain(chain);
     }
 
-    private static void upChain(String noTerminal, int ruleIndex, int chainIndex) {
-        //set chain
-        //configuration.setChain(configuration.getChain() + terminal);
-        String newChain = new StringBuilder(configuration.getChain())
-                .deleteCharAt(chainIndex)
-                .append(noTerminal)
-                .toString();
+    private static void upChain(String terminals, String noTerminal, int ruleIndex, int chainIndex) {
+        String newChain = "";
+        if (terminals.length() > 1) {
+            newChain = new StringBuilder(configuration.getChain())
+                    .toString()
+                    .replace(terminals, noTerminal);
+        } else {
+            //set chain
+            //configuration.setChain(configuration.getChain() + terminal);
+            newChain = new StringBuilder(configuration.getChain())
+                    .deleteCharAt(chainIndex)
+                    .append(noTerminal)
+                    .toString();
+        }
 
         configuration.setChain(newChain);
 
         //set history
         configuration.setHistory(String.valueOf(ruleIndex) + configuration.getHistory());
+
     }
 
     private static void downChain(String terminal, int chainIndex) {
