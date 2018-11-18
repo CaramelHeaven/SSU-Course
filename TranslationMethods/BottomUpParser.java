@@ -72,14 +72,18 @@ public class BottomUpParser {
             String someSymbols = extractChain(MORE_LETTERS);
             int lastIndexSymbol = configuration.getChain().length() - 1;
 
+            if (someSymbols.equals("T*a") && i == 4) {
+                System.out.println("here");
+            }
+
             //add loser ways if map contains it
             List<Integer> loserList = new ArrayList<>();
             if (loserDirections.containsKey(lastSymbol)) {
                 loserList.addAll(loserDirections.get(lastSymbol));
             }
 
-            if (grammarList.get(i).terminal.equals(lastSymbol) && !loserList.contains(i)) {
-                upChain(grammarList.get(i).terminal, grammarList.get(i).noTerminal, i, lastIndexSymbol);
+            if (grammarList.get(i).terminal.equals(lastSymbol)) {
+                upChain(grammarList.get(i).noTerminal, i, lastIndexSymbol);
 
                 //show
                 System.out.println(configuration.toString());
@@ -133,7 +137,7 @@ public class BottomUpParser {
                     loserList.addAll(loserDirections.get(lastSymbol));
                 }
 
-                if (lastSymbol.equals("*")){
+                if (lastSymbol.equals("*")) {
                     System.out.println("kek");
                 }
 
@@ -151,7 +155,7 @@ public class BottomUpParser {
                     removeSymbol();
 
                     //add removed symbol
-                    chainlet.append(chainReveir.charAt(0));
+                    chainlet.insert(0, chainReveir.charAt(0));
                     chainReveir.deleteCharAt(0);
 
                     //show
@@ -162,32 +166,60 @@ public class BottomUpParser {
             } else {
                 int lastSymbolIndex = configuration.getChain().length() - 1;
 
-                //removal chains while we will meet first 's'
-                for (int i = 0; i < grammarList.size(); i++) {
+                //иначе сверни еще раз, и добавь * и погнал
+                if (chainlet.length() != 0) {
+                    System.out.println("kek");
                     int cutRuleIndex = Integer.parseInt(String.valueOf(configuration.getHistory().charAt(0)));
 
-                    if (cutRuleIndex == i) {
-                        downChain(grammarList.get(i).terminal, lastSymbolIndex);
+                    for (int i = 0; i < grammarList.size(); i++) {
+                        if (cutRuleIndex == i) {
+                            downChain(grammarList.get(i).terminal, lastSymbolIndex);
 
-                        //show
-                        System.out.println(configuration.toString());
-                        break;
-                    }
-                }
-
-                //save loser direction
-                if (String.valueOf(history.charAt(1)).equals("s")) {
-                    int index = Integer.parseInt(String.valueOf(history.charAt(0)));
-                    String lastSymbol = extractChain(ONE_LETTER);
-                    List<Integer> loserList = new ArrayList<>();
-
-                    if (loserDirections.containsKey(lastSymbol)) {
-                        loserList.addAll(loserDirections.get(lastSymbol));
-                    } else {
-                        loserList.add(index);
+                            //show
+                            System.out.println(configuration.toString());
+                            break;
+                        }
                     }
 
-                    loserDirections.put(lastSymbol, loserList);
+                    //and add next symbol
+                    addSymbol();
+                    configuration.setStatement(Q);
+
+                    chainReveir.append(chainlet.charAt(0));
+                    chainlet.deleteCharAt(0);
+
+                    //show
+                    System.out.println(configuration.toString());
+
+                    provideBottomUpParser(grammarList);
+                } else {
+                    //removal chains while we will meet first 's'
+                    for (int i = 0; i < grammarList.size(); i++) {
+                        int cutRuleIndex = Integer.parseInt(String.valueOf(configuration.getHistory().charAt(0)));
+
+                        if (cutRuleIndex == i) {
+                            downChain(grammarList.get(i).terminal, lastSymbolIndex);
+
+                            //show
+                            System.out.println(configuration.toString());
+                            break;
+                        }
+                    }
+
+                    //save loser direction
+                    if (String.valueOf(history.charAt(1)).equals("s")) {
+                        int index = Integer.parseInt(String.valueOf(history.charAt(0)));
+                        String lastSymbol = extractChain(ONE_LETTER);
+                        List<Integer> loserList = new ArrayList<>();
+
+                        if (loserDirections.containsKey(lastSymbol)) {
+                            loserList.addAll(loserDirections.get(lastSymbol));
+                        } else {
+                            loserList.add(index);
+                        }
+
+                        loserDirections.put(lastSymbol, loserList);
+                    }
                 }
             }
         }
@@ -220,7 +252,7 @@ public class BottomUpParser {
         configuration.setChain(chain);
     }
 
-    private static void upChain(String terminals, String noTerminal, int ruleIndex, int chainIndex) {
+    private static void upChain(String noTerminal, int ruleIndex, int chainIndex) {
         //set chain
         //configuration.setChain(configuration.getChain() + terminal);
         String newChain = new StringBuilder(configuration.getChain())
