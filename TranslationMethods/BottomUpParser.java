@@ -3,228 +3,322 @@ import java.util.*;
 public class BottomUpParser {
 
     private static Map<String, List<String>> map;
-    private static StringBuilder chainlet;
-    private static StringBuilder cacheChainlet;
-    private static List<String> container; // our container -> (q, 1, $, s)
-    private static List<String> rulesContainer;
+    private static StringBuilder chainlet, chainReveir;
+    private static List<Grammar> grammarList;
+    private static Map<String, List<Integer>> loserDirections;
 
-    private static String DLR = "$";
-    private static int C = 1;
-    private static String Q = "q";
-    private static String B = "b";
-    private static String chain = "e";
+    private static final int ONE_LETTER = 0;
+    private static final int MORE_LETTERS = 1;
 
-    private static boolean DIRECTION = true; // true = q, false - back
-    private static boolean okNext = true;
+    private static final String B = "b";
+    private static final String Q = "q";
 
-    private static final int GET_STATUS = 0;
-    private static final int GET_COUNTER = 1;
-    private static final int GET_CHAIN = 2;
-    private static final int GET_HISTORY = 3;
+    private static Configuration configuration;
 
     public static void main(String[] args) {
         map = new LinkedHashMap<>();
         chainlet = new StringBuilder("a*a");
-        container = new ArrayList<>();
-        rulesContainer = new ArrayList<>();
-
-        container.add(Q);
-        container.add(String.valueOf(C));
-        container.add(DLR);
-        container.add(chain);
-
-        System.out.println(container);
+        chainReveir = new StringBuilder();
+        grammarList = new ArrayList<>();
+        loserDirections = new HashMap<>();
 
         map.put("S", new ArrayList<>(Arrays.asList("S+T", "T")));
         map.put("T", new ArrayList<>(Arrays.asList("T*F", "F")));
         map.put("F", new ArrayList<>(Arrays.asList("a")));
 
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            rulesContainer.addAll(entry.getValue());
+            for (String rule : entry.getValue()) {
+                Grammar grammar = new Grammar();
+
+                grammar.setNoTerminal(entry.getKey());
+                grammar.setTerminal(rule);
+
+                grammarList.add(grammar);
+            }
         }
 
-        cacheChainlet = new StringBuilder(chainlet.toString());
-        provideBottomUpParser(map, okNext);
+        configuration = new Configuration();
+
+        configuration.setCounter(1);
+        configuration.setChain("$");
+        configuration.setStatement("q");
+        configuration.setHistory("e");
+
+        addSymbol();
+
+        chainReveir.append(chainlet.charAt(0));
+        chainlet.deleteCharAt(0);
+
+        //show
+        System.out.println(configuration.toString());
+
+        provideBottomUpParser(grammarList);
+
     }
 
+    private static void provideBottomUpParser(List<Grammar> grammarList) {
+        boolean diveMore = false;
+        String nextChainlet = "";
 
-    private static void provideBottomUpParser(Map<String, List<String>> map, boolean okNextLetter) {
-        boolean successfulSymbolUp = false;
-        String loadNextChar = "";
+        if (chainlet.length() != 0) {
+            nextChainlet = String.valueOf(chainlet.charAt(0));
+        } else {
+            System.out.println("k");
+        }
 
-        if (okNextLetter) {
-            okNext = false;
-            loadNextChar = String.valueOf(cacheChainlet.charAt(0));
-            String complexChars = "";
+        for (int i = 0; i < grammarList.size(); i++) {
+            //provide last symbol and index
+            String lastSymbol = extractChain(ONE_LETTER);
+            String someSymbols = extractChain(MORE_LETTERS);
+            int lastIndexSymbol = configuration.getChain().length() - 1;
 
-            //add history
-            addHistoryAndCharacter(loadNextChar);
-
-            cacheChainlet.deleteCharAt(0);
-
-            //govnocode
-            String checkLine = container.get(GET_CHAIN).substring(1);
-            if (!checkLine.isEmpty()) {
-                complexChars = checkLine;
+            //add loser ways if map contains it
+            List<Integer> loserList = new ArrayList<>();
+            if (loserDirections.containsKey(lastSymbol)) {
+                loserList.addAll(loserDirections.get(lastSymbol));
             }
 
-            for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                for (String rule : entry.getValue()) {
-                    if (rule.equals(String.valueOf(loadNextChar)) || rule.equals(complexChars)) {
-                        String key = entry.getKey();
+            if (grammarList.get(i).terminal.equals(lastSymbol) && !loserList.contains(i)) {
+                upChain(grammarList.get(i).terminal, grammarList.get(i).noTerminal, i, lastIndexSymbol);
 
-                        //bug below, if u put aa - u will get FF for example
-                        String newChain = container.get(GET_CHAIN).replace(rule, key);
-                        container.set(GET_CHAIN, newChain);
+                //show
+                System.out.println(configuration.toString());
 
-                        int position = 1 + rulesContainer.indexOf(rule);    // count by key + pos in the list
-                        String newHistory = position + container.get(GET_HISTORY); // 5s
-                        container.set(GET_HISTORY, newHistory);
+                //try to cвертку еще раз
+                diveMore = true;
+                provideBottomUpParser(grammarList);
 
-                        //show result our steps
-                        System.out.println(container);
+                if (configuration.getStatement().equals(B)) {
+                    //loserDirections.add(i);
+                    break;
+                }
+            } else if (grammarList.get(i).terminal.equals(someSymbols)) {
+            }
 
-                        okNext = false;
-                        successfulSymbolUp = true;
-                        provideBottomUpParser(map, okNext);
 
-                        System.out.println("equals");
-                    } else {
-                        System.out.println("not equals");
-                    }
+        }
+
+        if (configuration.getStatement().equals(Q)) {
+            if (!diveMore) {
+                if (chainlet.toString().isEmpty()) {
+                    //when our chain is empty we come back
+                    configuration.setStatement(B);
+
+                    //show
+                    System.out.println(configuration.toString());
+                } else {
+                    addSymbol();
+
+                    //show
+                    System.out.println(configuration.toString());
+
+                    chainReveir.append(chainlet.charAt(0));
+                    chainlet.deleteCharAt(0);
+
+                    provideBottomUpParser(grammarList);
                 }
             }
-        } else {
-            boolean diveMore = false;
+        }
 
-            //Свертка, ласт элемент свернулся и мы смотрим, может ли новая цепь свернуться во что-нибудь больше
-            //if u return from рекурсии, ты опять прыгнешь на ту ветку событий [bug]
-            for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                for (String rule : entry.getValue()) {
-                    String cleanUp = container.get(GET_CHAIN).substring(1, container.get(GET_CHAIN).length());
-                    String lastSymbol = cleanUp.substring(cleanUp.length() - 1);
+        if (configuration.getStatement().equals(B)) {
+            String history = configuration.getHistory();
+            if (history.substring(0, 1).equals("s")) {
+                boolean diveAnotherPath = false;
+                //check other directions, if loser not contains loser direction and grammar == other direction of symbol
+                String lastSymbol = extractChain(ONE_LETTER);
 
-                    if (cleanUp.equals(rule)) {
-                        int position = 1 + rulesContainer.indexOf(rule);    // count by key + pos in the list
-                        String newHistory = position + container.get(GET_HISTORY); // ...s
-                        container.set(GET_HISTORY, newHistory);
+                //add loser ways if map contains it
+                List<Integer> loserList = new ArrayList<>();
+                if (loserDirections.containsKey(lastSymbol)) {
+                    loserList.addAll(loserDirections.get(lastSymbol));
+                }
 
-                        String newChain = container.get(GET_CHAIN).replace(
-                                container.get(GET_CHAIN), "$" + entry.getKey()
-                        );
-                        container.set(GET_CHAIN, newChain);
+                if (lastSymbol.equals("*")){
+                    System.out.println("kek");
+                }
 
-                        //show result our steps
-                        System.out.println(container);
+                for (int i = 0; i < grammarList.size(); i++) {
+                    if (!loserList.contains(i)
+                            && grammarList.get(i).terminal.equals(lastSymbol)) {
+                        diveAnotherPath = true;
 
-                        diveMore = true;
-                        provideBottomUpParser(map, false);
-                    } else if (rule.equals(lastSymbol)) {
-                        int position = 1 + rulesContainer.indexOf(rule);    // count by key + pos in the list
-                        String newHistory = position + container.get(GET_HISTORY); // ...s
-                        container.set(GET_HISTORY, newHistory);
-
-                        String newChain = container.get(GET_CHAIN).replace(lastSymbol, entry.getKey());
-                        container.set(GET_CHAIN, newChain);
-
-                        //show results
-                        System.out.println(container);
-
-                        diveMore = true;
-                        provideBottomUpParser(map, false);
-                    } else {
-                        System.out.println("i'm here");
+                        provideBottomUpParser(grammarList);
                     }
+                }
 
-                    //break out from recursive
-                    if (!DIRECTION) {
-                        if (!String.valueOf(chain.charAt(0)).equals("s")) {
-                            String chain = container.get(GET_HISTORY).substring(1);
-                            container.set(GET_HISTORY, chain);
+                if (!diveAnotherPath) {
+                    //we not found another direction, remove last char
+                    removeSymbol();
 
-                            String backChain = container.get(GET_CHAIN).substring(0, container.get(GET_CHAIN).length() - 1);
-                            backChain += lastSymbol;
+                    //add removed symbol
+                    chainlet.append(chainReveir.charAt(0));
+                    chainReveir.deleteCharAt(0);
 
-                            container.set(GET_CHAIN, backChain);
-                        } else {
-                            DIRECTION = true; //l
-                        }
+                    //show
+                    System.out.println(configuration);
+                }
+
+                //non we should start again find terminals
+            } else {
+                int lastSymbolIndex = configuration.getChain().length() - 1;
+
+                //removal chains while we will meet first 's'
+                for (int i = 0; i < grammarList.size(); i++) {
+                    int cutRuleIndex = Integer.parseInt(String.valueOf(configuration.getHistory().charAt(0)));
+
+                    if (cutRuleIndex == i) {
+                        downChain(grammarList.get(i).terminal, lastSymbolIndex);
 
                         //show
-                        System.out.println(container);
-
+                        System.out.println(configuration.toString());
                         break;
                     }
                 }
 
-                if (!DIRECTION) {
-                    break;
+                //save loser direction
+                if (String.valueOf(history.charAt(1)).equals("s")) {
+                    int index = Integer.parseInt(String.valueOf(history.charAt(0)));
+                    String lastSymbol = extractChain(ONE_LETTER);
+                    List<Integer> loserList = new ArrayList<>();
+
+                    if (loserDirections.containsKey(lastSymbol)) {
+                        loserList.addAll(loserDirections.get(lastSymbol));
+                    } else {
+                        loserList.add(index);
+                    }
+
+                    loserDirections.put(lastSymbol, loserList);
                 }
             }
-
-            //if chains equals nil and we come back
-            if (cacheChainlet.length() == 0) {
-                container.set(GET_STATUS, B);
-                DIRECTION = false;
-            }
-
-            //if наш дайв во всех правилах не нашел продолжения, мы добавляем next symbol and provide next step
-            if (!diveMore && DIRECTION) {
-                provideBottomUpParser(map, true);
-            }
-        }
-
-        //clean code
-        if (!successfulSymbolUp && DIRECTION) {
-            if (!loadNextChar.isEmpty()) {
-                provideBottomUpParser(map, true);
-
-                if (!DIRECTION) {
-                    backContainerHandler();
-                    DIRECTION = true;
-
-                    provideBottomUpParser(map, false);
-                }
-            }
-        } else if (successfulSymbolUp && !DIRECTION) {
-            //TODO HANDLER MAIN LOOP
-
-            //если у нас уже нет продолжения по данной цепочке, мы удаляем из чейна ласт символ и т.д.
-            backContainerHandler();
-            DIRECTION = true;
-
-            provideBottomUpParser(map, false);
         }
     }
 
-    private static void addHistoryAndCharacter(String loadNextChar) {
-        container.set(GET_CHAIN, container.get(GET_CHAIN) + loadNextChar);
+    private static void addSymbol() {
+        configuration.setCounter(configuration.getCounter() + 1);
 
-        C += 1;
-        container.set(GET_COUNTER, String.valueOf(C));
+        String history = configuration.getHistory();
 
-        if (container.get(GET_HISTORY).equals("e") && container.get(GET_CHAIN).length() > 1) {
-            container.set(GET_HISTORY, "s");
+        if (history.equals("e")) {
+            history = history.replace(history, "");
+            configuration.setHistory("s");
         } else {
-            StringBuilder builder = new StringBuilder(container.get(GET_HISTORY)).insert(0, "s");
-            container.set(GET_HISTORY, builder.toString());
+            configuration.setHistory("s" + history);
         }
 
-        //show
-        System.out.println(container);
+        String chain = configuration.getChain();
+        chain += chainlet.charAt(0);
+        configuration.setChain(chain);
     }
 
-    private static void backContainerHandler(){
-        String backChain = container.get(GET_CHAIN).substring(0, container.get(GET_CHAIN).length() - 1);
-        container.set(GET_CHAIN, backChain);
+    private static void removeSymbol() {
+        configuration.setCounter(configuration.getCounter() - 1);
 
-        C--;
-        container.set(GET_COUNTER, String.valueOf(C));
+        String history = configuration.getHistory().substring(1);
+        configuration.setHistory(history);
 
-        String newHistory = container.get(GET_HISTORY).substring(1);
-        container.set(GET_HISTORY, newHistory);
+        String chain = configuration.getChain().substring(0, configuration.getChain().length() - 1);
+        configuration.setChain(chain);
+    }
 
-        //show
-        System.out.println(container);
+    private static void upChain(String terminals, String noTerminal, int ruleIndex, int chainIndex) {
+        //set chain
+        //configuration.setChain(configuration.getChain() + terminal);
+        String newChain = new StringBuilder(configuration.getChain())
+                .deleteCharAt(chainIndex)
+                .append(noTerminal)
+                .toString();
+
+        configuration.setChain(newChain);
+
+        //set history
+        configuration.setHistory(String.valueOf(ruleIndex) + configuration.getHistory());
+    }
+
+    private static void downChain(String terminal, int chainIndex) {
+        String newChain = new StringBuilder(configuration.getChain())
+                .deleteCharAt(chainIndex)
+                .append(terminal)
+                .toString();
+
+        configuration.setChain(newChain);
+
+        //set history
+        String history = configuration.getHistory();
+        history = history.substring(1);
+
+        configuration.setHistory(history);
+    }
+
+    private static String extractChain(int choose) {
+        switch (choose) {
+            case ONE_LETTER:
+                return String.valueOf(configuration.getChain().charAt(configuration.getChain().length() - 1));
+            case MORE_LETTERS:
+                return configuration.getChain().substring(1);
+        }
+        return "";
+    }
+
+    private static class Grammar {
+        private String noTerminal;
+        private String terminal;
+
+        void setNoTerminal(String noTerminal) {
+            this.noTerminal = noTerminal;
+        }
+
+        void setTerminal(String terminal) {
+            this.terminal = terminal;
+        }
+    }
+
+    private static class Configuration {
+
+        private String statement;
+        private int counter;
+        private String chain;
+        private String history;
+
+        @Override
+        public String toString() {
+            return "[" +
+                    "" + statement +
+                    ", " + counter +
+                    ", " + chain +
+                    ", " + history +
+                    ']';
+        }
+
+        String getStatement() {
+            return statement;
+        }
+
+        void setStatement(String statement) {
+            this.statement = statement;
+        }
+
+        int getCounter() {
+            return counter;
+        }
+
+        void setCounter(int counter) {
+            this.counter = counter;
+        }
+
+        String getChain() {
+            return chain;
+        }
+
+        void setChain(String chain) {
+            this.chain = chain;
+        }
+
+        String getHistory() {
+            return history;
+        }
+
+        void setHistory(String history) {
+            this.history = history;
+        }
     }
 }
