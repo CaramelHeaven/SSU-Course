@@ -17,7 +17,7 @@ func counterLettersFrequency(mainFile: String) throws {
             if let _ = mapLetters[letter] {
                 var value = mapLetters[letter]!
                 value += 1
-
+                
                 mapLetters.updateValue(value, forKey: letter)
             }
             else {
@@ -25,22 +25,38 @@ func counterLettersFrequency(mainFile: String) throws {
             }
         }
     }
-
+    
     var result = [Character: Double]()
-
+    
     for (key, _) in mapLetters {
         let value = Double(mapLetters[key]!) / 1000.0
-
+        
         result[key] = value
     }
-
+    
     let sortedKeys = Array(result.keys).sorted()
     //sout result
     print("Table of letters frequency:")
-
+    
+    var recordText = ""
+    
     for letter in sortedKeys {
-        print("\(letter) := \(String(format: "%.3f", result[letter]!))")
+        let sout = "\(letter) := \(String(format: "%.3f", result[letter]!))"
+        recordText += sout + "\n"
+        
+        print(sout)
     }
+    
+    //Create file and save data
+    if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+        do {
+            try recordText.write(to: dir.appendingPathComponent("output.txt"), atomically: false, encoding: .windowsCP1251)
+        }
+        catch {
+            print("something error: \(error)")
+        }
+    }
+    
 }
 
 // MARK MAIN
@@ -52,20 +68,27 @@ var userCase = 0
 while(userCase == 0) {
     print("Enter a path to file: ")
     let mainFile = readLine()
-
+    
     do {
         try counterLettersFrequency(mainFile: mainFile!)
         userCase += 1
     } catch {
-        print("File not found, do u want to try again? (y/n)")
-        let read = readLine()!
-
-        if read == "y" || read == "ye" || read == "yes" || read == "yup" {
-            //contains
-        } else {
-            userCase += 1
+        print("Text file not found, do u want to try again? (y/n)")
+        var kek = 0
+        
+        while(kek == 0) {
+            let read = readLine()!
+            
+            if read == "y" || read == "ye" || read == "yes" || read == "yup" {
+                kek += 1
+                //contains
+            } else if read == "n" || read == "no" {
+                kek += 1
+                userCase += 1
+            }
+            else {
+                print("Command not found, try again")
+            }
         }
     }
 }
-
-print("exit")
