@@ -10,74 +10,69 @@ import Foundation
 extension String {
     func removeUselessCharacters(alphabet: String, key: String) -> String {
         var resultString = alphabet
-        
+
         for item in key {
             if alphabet.contains(item) {
                 resultString = resultString.replacingOccurrences(of: String(item), with: "")
             }
         }
-        
-        return resultString
-    }
-}
 
-//Remove duplicated symbols
-extension RangeReplaceableCollection where Element: Hashable {
-    var squeezed: Self {
-        var set = Set<Element>()
-        return filter { set.insert($0).inserted }
+        return resultString
     }
 }
 
 struct Matrix {
     let rows: Int, columns: Int
     var grid: [String]
-    
+
     init(rows: Int, columns: Int) {
         self.rows = rows
         self.columns = columns
         grid = Array(repeating: "", count: rows * columns)
     }
-    
+
     func indexIsValid(row: Int, column: Int) -> Bool {
         return row >= 0 && row < rows && (column >= 0) && column < columns
     }
-    
+
     subscript(row: Int, column: Int) -> String {
         get {
-            assert(indexIsValid(row: row, column: column), "Index out of range")
             return grid[(row * columns) + column]
         }
         set {
-            assert(indexIsValid(row: row, column: column), "Index out of range")
             grid[(row * columns) + column] = newValue
         }
     }
-    
-    func findCharacter(char: String) -> (Int, Int) {
+
+    func findCharacterPosition(single: String) -> (String, String) {
         var row = 0, column = 0
         for i in 0..<self.rows {
             for j in 0..<self.columns {
-                if self[i, j] == char {
+                if self[i, j] == single {
                     row = i; column = j
-                    
+
                     break
                 }
             }
         }
+
         if row == 0 && column == 0 {
-            return (self.rows, self.columns)
+            return (String(self.rows), String(self.columns))
         }
-        return (row, column)
+        return (String(row), String(column))
     }
-    
+
+    func findCharByPositionInMatrix(row: Int, column: Int) -> String {
+        return self[row, column]
+    }
+
     func sout() {
         var rows = ""
         for j in 0..<self.columns {
             rows += String(j) + " "
         }
         print("   \(rows)")
-        
+
         for i in 0..<self.rows {
             var columns = ""
             for j in 0..<self.columns {
@@ -91,31 +86,31 @@ struct Matrix {
 func findRowsAndColumns(commonCount: Int) -> (Int, Int) {
     let rowsCount = (Int(sqrt(Double(commonCount))))
     var columnsCount = rowsCount
-    
-    var residue = commonCount - (rowsCount * rowsCount)
-    
+
+    var residue = commonCount - (rowsCount * rowsCount) - 1
+
     while residue > rowsCount {
         columnsCount += 1
         residue -= rowsCount
     }
-    
+
     return (rowsCount, columnsCount)
 }
 
 func initialMatrix(matrix: inout Matrix, keyData: String, alphabet: String) {
     var key = keyData
     var residueAlphabet = alphabet.removeUselessCharacters(alphabet: alphabet, key: key)
-    
+
     for i in 0..<matrix.rows {
         for j in 0..<matrix.columns {
             if key.count > 0 {
                 let char = String(key.first!)
-                
+
                 matrix[i, j] = char
                 key.removeFirst()
             } else if residueAlphabet.count > 0 {
                 let char = String(residueAlphabet.first!)
-                
+
                 matrix[i, j] = char
                 residueAlphabet.removeFirst()
             }
@@ -123,38 +118,118 @@ func initialMatrix(matrix: inout Matrix, keyData: String, alphabet: String) {
     }
 }
 
-
-//initial data
-let alphabet = "АаБбВвГгДдЕеЁёЖжЗзИиӢйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя.,:-!?0123456789"
-var keyMain = "аби4вабив.32590"
-
-// MARK - MAIN
-let mainFile = "main
-
-let baseText = try? String(contentsOfFile: mainFile, encoding: String.Encoding.utf8)
-var encodeText = ""
-var decodeText = ""
-
-var key = keyMain.squeezed //non duplicated
-let data = findRowsAndColumns(commonCount: alphabet.count + key.count) //data row and columns
-
-var matrix = Matrix(rows: data.0, columns: data.1)
-
-initialMatrix(matrix: &matrix, keyData: key, alphabet: alphabet)
-
-matrix.sout()
-
-for char in baseText! {
-    let data = matrix.findCharacter(char: String(char))
-    
-    if data.0 == matrix.rows && data.1 == matrix.columns {
-        encodeText += " "
-    } else {
-        let encodeSymbol = String(data.0) + String(data.1)
-        
-        encodeText += encodeSymbol
-    }
+func refactoringString(str: inout String) {
+    var set = Set<Character>()
+    str = str.filter { set.insert($0).inserted }
 }
 
-print("encoding")
-print(encodeText)
+func buildMatrix(alphabet: String, keyMain: String) -> Matrix {
+    let data = findRowsAndColumns(commonCount: alphabet.count + keyMain.count) //data row and columns
+    var matrix = Matrix(rows: data.0, columns: data.1)
+
+    initialMatrix(matrix: &matrix, keyData: keyMain, alphabet: alphabet)
+
+    return matrix
+}
+
+func checkingEnterUserText(str: String) -> Bool {
+    return true
+}
+
+//initial data
+var alphabet = "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮйцукенгшщзхъфывапролджэячсмитьбю"
+alphabet = String(alphabet.sorted()) + "0123456789.,:-!? "
+
+//MARK - MAIN
+
+
+
+var isOutFromLoop = false
+
+while(!isOutFromLoop) {
+    print("Choose action")
+    print("1 - encoded data")
+    print("2 - decoded data")
+    let action = readLine()
+
+    if action == "1" {
+        // MARK - ENCODER
+
+        print("Enter you key")
+        var keyMain = readLine()!
+        refactoringString(str: &keyMain)
+
+        print("Enter you text for encode")
+        let textFromUser = readLine()!
+
+        var encodeText = ""
+
+        let matrix = buildMatrix(alphabet: alphabet, keyMain: keyMain)
+        matrix.sout()
+
+        print("suka \(matrix[0, 0])")
+
+        for char in textFromUser {
+            let (row, column) = matrix.findCharacterPosition(single: String(char)) //haha
+            encodeText += (row + column)
+        }
+
+        print("encoded: \(encodeText)")
+
+        //Create file and save data
+        if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+            do {
+                try encodeText.write(to: dir.appendingPathComponent("output.txt"), atomically: false, encoding: .utf8)
+            }
+            catch {
+                print("something error: \(error)")
+            }
+        }
+
+        print("Do u want to decode file? yes/no")
+        let kek = readLine()!
+        if kek != "yes" {
+            isOutFromLoop = !isOutFromLoop
+        } else {
+            print("continue")
+        }
+    } else {
+        // MARR - ECONDER
+
+        print("Enter a key for decode file")
+        var keyMain = readLine()!
+        refactoringString(str: &keyMain)
+
+        var outputText = ""
+        var decodedText = ""
+
+        if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+            outputText = try String(contentsOf: dir.appendingPathComponent("output.txt"), encoding: .utf8)
+        }
+
+        let matrix = buildMatrix(alphabet: alphabet, keyMain: keyMain)
+
+        matrix.sout()
+
+        var pairsArray = [String]()
+
+        while outputText.count > 1 {
+            var pair = String(outputText.remove(at: outputText.startIndex))
+            pair += String(outputText.remove(at: outputText.startIndex))
+
+            pairsArray.append(pair)
+        }
+
+        print("pairs: \(pairsArray)")
+
+        for item in pairsArray {
+            let char = matrix.findCharByPositionInMatrix(row: Int(String(item.first!))!, column: Int(String(item.last!))!)
+
+            decodedText += char
+        }
+
+        print("Decoded: \(decodedText)")
+
+        isOutFromLoop = !isOutFromLoop
+    }
+}
