@@ -80,18 +80,32 @@ struct Matrix {
     }
 }
 
-func findRowsAndColumns(commonCount: Int) -> (Int, Int) {
-    let rowsCount = (Int(sqrt(Double(commonCount))))
-    var columnsCount = rowsCount
+func isPrime(_ number: Int) -> Bool {
+    return number > 1 && !(2..<number).contains { number % $0 == 0 }
+}
 
-    var residue = commonCount - (rowsCount * rowsCount) - 1
+func findAllMultipleValuesByNumber(number: Int) -> (Int, Int) {
+    var arr = Array<(Int, Int)>()
+    for i in 2...number {
+        if number % i == 0 {
+            arr.append((i, (number / i)))
+        }
+    }
+    arr = arr.sorted(by: { $0.0 + $0.1 < $1.0 + $1.1 })
 
-    while residue > rowsCount {
-        columnsCount += 1
-        residue -= rowsCount
+    return arr[0]
+}
+
+func findRowsAndColumns(valuesCount: Int) -> (Int, Int) {
+    var (row, column) = (0, 0)
+
+    if isPrime(valuesCount) {
+        (row, column) = findAllMultipleValuesByNumber(number: valuesCount + 1)
+    } else {
+        (row, column) = findAllMultipleValuesByNumber(number: valuesCount)
     }
 
-    return (rowsCount, columnsCount)
+    return (row, column)
 }
 
 func initialMatrix(matrix: inout Matrix, keyData: String, alphabet: String) {
@@ -115,13 +129,14 @@ func initialMatrix(matrix: inout Matrix, keyData: String, alphabet: String) {
     }
 }
 
+
 func refactoringString(str: inout String) {
     var set = Set<Character>()
     str = str.filter { set.insert($0).inserted }
 }
 
 func buildMatrix(alphabet: String, keyMain: String) -> Matrix {
-    let data = findRowsAndColumns(commonCount: alphabet.count + keyMain.count) //data row and columns
+    let data = findRowsAndColumns(valuesCount: alphabet.count) //data row and columns
     var matrix = Matrix(rows: data.0, columns: data.1)
 
     initialMatrix(matrix: &matrix, keyData: keyMain, alphabet: alphabet)
@@ -130,29 +145,28 @@ func buildMatrix(alphabet: String, keyMain: String) -> Matrix {
 }
 
 //initial data
-var alphabet = "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮйцукенгшщзхъфывапролджэячсмитьбю"
+var alphabet = "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
+alphabet = String(alphabet.sorted()) + "0123456789.,:-!? ();@"
+alphabet = alphabet.replacingOccurrences(of: "Е", with: "ЕЁ")
+
 var enteringText = alphabet
-alphabet = String(alphabet.sorted()) + "0123456789.,:-!? "
 
 //MARK - MAIN
 
-func checkingEnterUserKey(str: String) -> Bool {
+func checkingEnterUserKey(str: inout String) {
     for item in str {
         if !alphabet.contains(item) {
-            return false
-        }//Алалалалалал
-    }
-    return true
-}
-
-func checkingEnterUserText(string: String) -> Bool {
-    print("checkign string: \(string)")
-    for item in string {
-        if !enteringText.contains(item) {
-            return false
+            str = str.replacingOccurrences(of: String(item), with: "")
         }
     }
-    return true
+}
+
+func checkingEnterUserText(string: inout String) {
+    for item in string {
+        if !enteringText.contains(item) {
+            string = string.replacingOccurrences(of: String(item), with: "")
+        }
+    }
 }
 
 
@@ -164,24 +178,27 @@ let action = readLine()
 if action == "1" {
     // MARK - ENCODER
 
-    print("Enter you key")
-    var keyMain = readLine()!
+    var keyMain = ""
+    var textFromUser = ""
 
-    while(!checkingEnterUserKey(str: keyMain)) {
-        print("You entered non compatible key, try again: ")
-        keyMain = readLine()!
+    if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+        keyMain = try String(contentsOf: dir.appendingPathComponent("key.txt"), encoding: .utf8)
+        keyMain = keyMain.uppercased()
     }
 
+    checkingEnterUserKey(str: &keyMain)
     refactoringString(str: &keyMain)
 
-    print("Enter you text for encode")
-    var textFromUser = readLine()!
+    print("you key: \(keyMain)")
 
-    while(!checkingEnterUserText(string: textFromUser)) {
-        print("You entered non compatible text, try again: ")
-        textFromUser = readLine()!
+    if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+        textFromUser = try String(contentsOf: dir.appendingPathComponent("textUser.txt"), encoding: .utf8)
+        textFromUser = textFromUser.uppercased()
     }
 
+    checkingEnterUserText(string: &textFromUser)
+
+    print("you data: \(textFromUser)")
     var encodeText = ""
 
     let matrix = buildMatrix(alphabet: alphabet, keyMain: keyMain)
@@ -191,8 +208,6 @@ if action == "1" {
         let (row, column) = matrix.findCharacterPosition(single: String(char)) //haha
         encodeText += (row + column)
     }
-
-    print("encoded: \(encodeText)")
 
     //Create file and save data
     if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
@@ -205,16 +220,17 @@ if action == "1" {
     }
 
 } else if action == "2" {
-    // MARR - ECONDER
+    // MARR - DECODER
 
     print("Enter a key for decode file")
-    var keyMain = readLine()!
+    var keyMain = ""
 
-    while(!checkingEnterUserKey(str: keyMain)) {
-        print("You entered non compatible text, enter again: ")
-        keyMain = readLine()!
+    if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+        keyMain = try String(contentsOf: dir.appendingPathComponent("key.txt"), encoding: .utf8)
+        keyMain = keyMain.uppercased()
     }
 
+    checkingEnterUserKey(str: &keyMain)
     refactoringString(str: &keyMain)
 
     var outputText = ""
@@ -236,8 +252,6 @@ if action == "1" {
 
         pairsArray.append(pair)
     }
-
-    print("pairs: \(pairsArray)")
 
     for item in pairsArray {
         let char = matrix.findCharByPositionInMatrix(row: Int(String(item.first!))!, column: Int(String(item.last!))!)
