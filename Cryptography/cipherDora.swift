@@ -124,6 +124,8 @@ var output = ""
 var encoding = ""
 var decoding = ""
 
+var permissionToDecode = false
+
 if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
     key = try String(contentsOf: dir.appendingPathComponent("key 2.txt"), encoding: .utf8)
     text = try String(contentsOf: dir.appendingPathComponent("textUser.txt"), encoding: .utf8)
@@ -132,59 +134,79 @@ if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMas
     text = text.lowercased()
 
     key = removeUselessKeyLetters(key: key) // get refactoring key
-    cleanUpUserText(text: &text)
 
-    fillTable(key: key)
+    if key.count >= 6 {
+        permissionToDecode = true
+        cleanUpUserText(text: &text)
 
-    sout()
+        fillTable(key: key)
 
-    for char in text {
-        let (row, column) = encodingByTable(char: char)
-        encoding += row! + column!
+        sout()
 
-        let fantom = arc4random_uniform(2)
-        if fantom == 0 {
-            encoding += String(fantom)
+        for char in text {
+            let (row, column) = encodingByTable(char: char)
+
+            let addNullOrNot = arc4random_uniform(2)
+            if addNullOrNot == 0 { // true, get next random to set middle or in the end data
+                let middleOrToEnd = arc4random_uniform(2)
+                if middleOrToEnd == 0 { //middle
+                    encoding += row! + "0" + column!
+                } else { // to end
+                    encoding += row! + column! + "0"
+                }
+            } else {
+                encoding += row! + column!
+            }
         }
-    }
 
+        if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
+            do {
+                try encoding.write(to: dir.appendingPathComponent("output.txt"), atomically: false, encoding: .utf8)
+            }
+            catch {
+                print("something error: \(error)")
+            }
+        }
+    } else {
+        print("key must have length >= 6")
+    }
+}
+
+print()
+print("enter something to decode message")
+var read = readLine()
+print()
+
+if permissionToDecode {
     if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
-        do {
-            try encoding.write(to: dir.appendingPathComponent("output.txt"), atomically: false, encoding: .utf8)
+        key = try String(contentsOf: dir.appendingPathComponent("key 2.txt"), encoding: .utf8)
+        output = try String(contentsOf: dir.appendingPathComponent("output.txt"), encoding: .utf8)
+
+        key = key.lowercased()
+        key = removeUselessKeyLetters(key: key)
+        output = output.replacingOccurrences(of: "0", with: "")
+
+        fillTable(key: key)
+
+        sout()
+
+        var pairsArray = [String]()
+
+        while output.count > 1 {
+            var pair = String(output.remove(at: output.startIndex))
+            pair += String(output.remove(at: output.startIndex))
+
+            pairsArray.append(pair)
         }
-        catch {
-            print("something error: \(error)")
+
+        for pair in pairsArray {
+            let letter = decodingByTable(pair: pair)
+
+            decoding += letter!
         }
+
+        print("textus: \(text)")
+        print("output: \(decoding)")
     }
 }
 
-if let dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first {
-    key = try String(contentsOf: dir.appendingPathComponent("key 2.txt"), encoding: .utf8)
-    output = try String(contentsOf: dir.appendingPathComponent("output.txt"), encoding: .utf8)
-
-    key = key.lowercased()
-    key = removeUselessKeyLetters(key: key)
-    output = output.replacingOccurrences(of: "0", with: "")
-
-    fillTable(key: key)
-
-    sout()
-
-    var pairsArray = [String]()
-
-    while output.count > 1 {
-        var pair = String(output.remove(at: output.startIndex))
-        pair += String(output.remove(at: output.startIndex))
-
-        pairsArray.append(pair)
-    }
-
-    for pair in pairsArray {
-        let letter = decodingByTable(pair: pair)
-
-        decoding += letter!
-    }
-
-    print("textus: \(text)")
-    print("output: \(decoding)")
-}
