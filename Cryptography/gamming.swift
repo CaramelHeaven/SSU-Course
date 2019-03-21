@@ -9,7 +9,6 @@
 import Foundation
 
 let alphabet = "0123456789.,:-!? ();@£$%^&|'/<>ЙЦУКЕЁНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
-
 var key = ""
 var openText = ""
 
@@ -27,7 +26,6 @@ extension String {
                 self = self.replacingOccurrences(of: String(char), with: "")
             }
         }
-
         var set = Set<Character>()
         self = self.filter { set.insert($0).inserted }
     }
@@ -40,11 +38,25 @@ extension String {
     }
 
     public mutating func firstPair() -> String? {
-        if self.count > 1 {
-            var pair = String(self.remove(at: self.startIndex))
-            pair += String(self.remove(at: self.startIndex))
+        if self.count > 0 {
+            let firstLetter = String(self.remove(at: self.startIndex))
 
-            return pair
+            var result = ""
+            if self.count > 0 {
+                result = firstLetter + String(self.first!)
+            } else {
+                result = firstLetter
+            }
+
+            if let value = Int(result) {
+                if value > alphabet.count {
+                    return firstLetter
+                } else {
+                    self = String(self.dropFirst())
+                }
+            }
+
+            return result
         }
         return nil
     }
@@ -65,13 +77,11 @@ func readFromFile(fileSource: String, decoding used: Bool) -> String {
         text = try! String(contentsOf: dir.appendingPathComponent(fileSource), encoding: .utf8)
 
         text = text.uppercased()
-        if used == false {
+        if !used {
             text.removeNotCompatiblesChars()
         }
 
     }
-    print("text: \(text)")
-
     return text
 }
 
@@ -85,23 +95,38 @@ func writeToFile(fileSource: String, text: String) {
     }
 }
 
-func handlerCryptoData(text: inout String, encoding: Bool) {
+func handlerCryptoData(text: inout String, encoding: Bool, lenghKeyLessThanOpenText: Bool) {
     let keyPos = key.getPositionCharFromAlphabet(of: key.first!)!
     var textPos: Int? // can be one symbol or for decoding - two.
 
     if encoding {
         textPos = openText.getPositionCharFromAlphabet(of: openText.first!)!
         openText = String(openText.dropFirst())
-
         text += String(keyPos ^ textPos!)
     } else {
         textPos = Int(openText.firstPair()!)
         text += getCharFromAlphabetByIndex(of: keyPos ^ textPos!)
     }
 
-
-    key.makeNewSymbol(positionOf: keyPos)
+    if lenghKeyLessThanOpenText {
+        key.makeNewSymbol(positionOf: keyPos)
+    }
     key = String(key.dropFirst())
+}
+
+func makeGamming(mainText: inout String, encryptData: Bool) {
+    if key.count > openText.count {
+        let index = key.index(key.startIndex, offsetBy: openText.count)
+        key = String(key[..<index])
+
+        while openText.count != 0 {
+            handlerCryptoData(text: &mainText, encoding: encryptData, lenghKeyLessThanOpenText: false)
+        }
+    } else {
+        while openText.count != 0 {
+            handlerCryptoData(text: &mainText, encoding: encryptData, lenghKeyLessThanOpenText: true)
+        }
+    }
 }
 
 // MAIN
@@ -110,18 +135,11 @@ key = readFromFile(fileSource: "key gamming.txt", decoding: false)
 openText = readFromFile(fileSource: "text gamming.txt", decoding: false)
 
 print("alphabet: \(alphabet)")
-print("key: after: \(key)")
-print("user text: \(openText)")
+print("key: base: \(key)")
+print("user text base: \(openText)")
 
 var encodedText = ""
-
-if key.count > openText.count {
-
-} else {
-    while openText.count != 0 {
-        handlerCryptoData(text: &encodedText, encoding: true)
-    }
-}
+makeGamming(mainText: &encodedText, encryptData: true)
 
 print("encoded result: \(encodedText)")
 writeToFile(fileSource: "output.txt", text: encodedText)
@@ -130,21 +148,12 @@ writeToFile(fileSource: "output.txt", text: encodedText)
 
 print("-----")
 
+let lol = readLine()
 key = readFromFile(fileSource: "key gamming.txt", decoding: false)
 openText = readFromFile(fileSource: "output.txt", decoding: true)
 
+print("encoded text: \(openText)")
 var decodedText = ""
-
-print("key new: \(key)")
-print("open text new: \(openText)")
-
-if key.count > openText.count {
-
-} else {
-    while openText.count != 0 {
-        handlerCryptoData(text: &decodedText, encoding: false)
-        print("decoding text: \(decodedText)")
-    }
-}
+makeGamming(mainText: &decodedText, encryptData: false)
 
 print("decoding text: \(decodedText)")
