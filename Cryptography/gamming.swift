@@ -12,6 +12,44 @@ let alphabet = "0123456789.,:-!? ();@£$%^&|'/<>ЙЦУКЕЁНГШЩЗХЪФЫВ
 var key = ""
 var openText = ""
 
+var encodedBinaryKeyData = ""
+var encodedBinaryOpenTextData = ""
+
+func convert(_ str: String, fromRadix r1: Int, toRadix r2: Int) -> String? {
+    if let num = Int(str, radix: r1) {
+        return String(num, radix: r2)
+    } else {
+        return nil
+    }
+}
+
+func fillMissingNulls(value: inout String) {
+    var count = value.count
+
+    while count != 6 {
+        value.insert("0", at: value.startIndex)
+        count += 1
+    }
+}
+
+func formatIntToBinaryAndMakeNewSymbol(value: Int) -> String {
+    var binaryValue = String(value, radix: 2)
+    fillMissingNulls(value: &binaryValue)
+    print("im here")
+
+    let count = binaryValue.count
+    for _ in 0..<count {
+        let startValue = Int(String(binaryValue.first!))!
+        let endValue = Int(String(binaryValue.last!))!
+
+        binaryValue = String(binaryValue.dropFirst())
+
+        binaryValue += String(startValue | endValue)
+    }
+
+    return binaryValue
+}
+
 extension String {
     public func getPositionCharFromAlphabet(of char: Character) -> Int? {
         if let kek = alphabet.index(of: char) {
@@ -26,38 +64,30 @@ extension String {
                 self = self.replacingOccurrences(of: String(char), with: "")
             }
         }
-        var set = Set<Character>()
-        self = self.filter { set.insert($0).inserted }
     }
 
     public mutating func makeNewSymbol(positionOf startIndex: Int) {
-        let endIndex = self.getPositionCharFromAlphabet(of: self.last!)!
-        let newChar = getCharByPositionInAlphabet(position: startIndex ^ endIndex)
+        print("make new symbol: \(self.count)")
+        if self.count == 1 {
+            let positionFromAlphabet = self.getPositionCharFromAlphabet(of: self.first!)!
+            let newBinaryChar = formatIntToBinaryAndMakeNewSymbol(value: positionFromAlphabet)
+            let newChar = convert(newBinaryChar, fromRadix: 2, toRadix: 10)!
 
-        self.append(newChar)
+            print("newChar: \(newChar)")
+            self.append(getCharByPositionInAlphabet(position: Int(newChar)!))
+        } else {
+            let endIndex = self.getPositionCharFromAlphabet(of: self.last!)!
+            let newChar = getCharByPositionInAlphabet(position: startIndex ^ endIndex)
+
+            self.append(newChar)
+        }
     }
 
-    public mutating func firstPair() -> String? {
+    public mutating func getLetter() -> String? {
         if self.count > 0 {
-            let firstLetter = String(self.remove(at: self.startIndex))
-
-            var result = ""
-            if self.count > 0 {
-                result = firstLetter + String(self.first!)
-            } else {
-                result = firstLetter
-            }
-
-            if let value = Int(result) {
-                if value > alphabet.count {
-                    return firstLetter
-                } else {
-                    self = String(self.dropFirst())
-                }
-            }
-
-            return result
+            return String(self.remove(at: self.startIndex))
         }
+
         return nil
     }
 }
@@ -97,15 +127,22 @@ func writeToFile(fileSource: String, text: String) {
 
 func handlerCryptoData(text: inout String, encoding: Bool, lenghKeyLessThanOpenText: Bool) {
     let keyPos = key.getPositionCharFromAlphabet(of: key.first!)!
+    encodedBinaryKeyData += String(keyPos, radix: 2) //add to common view
     var textPos: Int? // can be one symbol or for decoding - two.
 
     if encoding {
         textPos = openText.getPositionCharFromAlphabet(of: openText.first!)!
+        encodedBinaryOpenTextData += String(textPos!, radix: 2)
+
         openText = String(openText.dropFirst())
-        text += String(keyPos ^ textPos!)
+        let result = keyPos ^ textPos!
+
+        text += String(getCharByPositionInAlphabet(position: result))
     } else {
-        textPos = Int(openText.firstPair()!)
-        text += getCharFromAlphabetByIndex(of: keyPos ^ textPos!)
+        let encodedLetter = openText.getLetter()!
+        let result = keyPos ^ encodedLetter.getPositionCharFromAlphabet(of: Character(encodedLetter))!
+
+        text += String(getCharByPositionInAlphabet(position: result))
     }
 
     if lenghKeyLessThanOpenText {
@@ -142,6 +179,10 @@ var encodedText = ""
 makeGamming(mainText: &encodedText, encryptData: true)
 
 print("encoded result: \(encodedText)")
+
+print("common key: \(encodedBinaryKeyData)")
+print("common open text: \(encodedBinaryOpenTextData)")
+
 writeToFile(fileSource: "output.txt", text: encodedText)
 
 //let read = readLine()
@@ -150,7 +191,7 @@ print("-----")
 
 let lol = readLine()
 key = readFromFile(fileSource: "key gamming.txt", decoding: false)
-openText = readFromFile(fileSource: "output.txt", decoding: true)
+openText = readFromFile(fileSource: "output.txt", decoding: false)
 
 print("encoded text: \(openText)")
 var decodedText = ""
